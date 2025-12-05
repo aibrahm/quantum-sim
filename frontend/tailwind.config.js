@@ -6,23 +6,8 @@ export default {
   ],
   theme: {
     extend: {
-      colors: {
-        quantum: {
-          50: '#f0f7ff',
-          100: '#e0effe',
-          200: '#bae0fd',
-          300: '#7cc8fb',
-          400: '#36aaf5',
-          500: '#0c8ee6',
-          600: '#0070c4',
-          700: '#01599f',
-          800: '#064b83',
-          900: '#0b3f6d',
-          950: '#072849',
-        },
-      },
-      animation: {
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      fontFamily: {
+        mono: ['JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', 'monospace'],
       },
     },
   },

@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', monospace;
+  line-height: 1.4;
   font-weight: 400;
   color-scheme: dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #0f172a;
+  color: #fff;
+  background-color: #000;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -20,40 +20,42 @@ body {
   min-height: 100vh;
 }
 
-/* Custom scrollbar */
+/* Scrollbar - raw */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: #000;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #475569;
-  border-radius: 4px;
+  background: #444;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #666;
 }
 
-/* Circuit grid styling */
+/* Circuit grid */
 .circuit-grid {
   background-image:
-    linear-gradient(to right, #1e293b 1px, transparent 1px),
-    linear-gradient(to bottom, #1e293b 1px, transparent 1px);
+    linear-gradient(to right, #222 1px, transparent 1px),
+    linear-gradient(to bottom, #222 1px, transparent 1px);
   background-size: 60px 60px;
-}
-
-/* Gate drag styling */
-.gate-dragging {
-  opacity: 0.5;
-  transform: scale(1.1);
 }
 
 /* Bloch sphere canvas */
 .bloch-canvas {
   touch-action: none;
+}
+
+/* Remove all default button styling */
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
 }

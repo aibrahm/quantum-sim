@@ -293,20 +293,50 @@ class QFTRequest(BaseModel):
     n_qubits: int = Field(..., ge=1, le=10)
     input_state: Optional[List[int]] = None  # Computational basis state
     inverse: bool = False
+    shots: int = 1024
+
+
+class QFTResponse(BaseModel):
+    """Result of QFT."""
+    n_qubits: int
+    input_state: List[int]
+    inverse: bool
+    counts: Dict[str, int]
+    probabilities: Dict[str, float]
+    shots: int
+
+
+class DeutschJozsaRequest(BaseModel):
+    """Request to run Deutsch-Jozsa algorithm."""
+    n_qubits: int = Field(..., ge=1, le=8)
+    oracle_type: Literal["constant_0", "constant_1", "balanced"]
+    shots: int = 1024
+
+
+class DeutschJozsaResponse(BaseModel):
+    """Result of Deutsch-Jozsa algorithm."""
+    oracle_type: str
+    detected_type: str
+    correct: bool
+    counts: Dict[str, int]
+    shots: int
+    zero_probability: float
 
 
 class TeleportationRequest(BaseModel):
     """Request for quantum teleportation demo."""
     state_theta: float = 0  # Bloch sphere theta
     state_phi: float = 0    # Bloch sphere phi
+    shots: int = 1024
 
 
 class TeleportationResponse(BaseModel):
     """Result of teleportation."""
-    original_bloch: BlochVector
-    teleported_bloch: BlochVector
+    input_bloch: Dict[str, float]
+    output_bloch: Dict[str, float]
     fidelity: float
-    classical_bits: str
+    counts: Dict[str, int]
+    shots: int
 
 
 # =============================================================================

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Play, Pause, RotateCcw, StepForward, Download, Trash2 } from 'lucide-react';
 import { useCircuitStore } from '../stores/circuitStore';
 import { createCircuit, runCircuit, exportOpenQASM } from '../api/client';
 
@@ -24,16 +23,15 @@ export function ControlPanel() {
     setProbabilities,
     clearOperations,
     resetExecution,
+    toOperationsPayload,
   } = useCircuitStore();
 
-  // Create and run circuit mutation
   const runMutation = useMutation({
     mutationFn: async () => {
-      // Create circuit
-      const circuit = await createCircuit(nQubits, name, operations);
+      // Use toOperationsPayload to include initialization gates
+      const circuit = await createCircuit(nQubits, name, toOperationsPayload());
       setCircuitId(circuit.id);
 
-      // Run circuit
       const result = await runCircuit(circuit.id, {
         shots,
         mode,
@@ -45,7 +43,6 @@ export function ControlPanel() {
     onSuccess: (result) => {
       setResult(result);
 
-      // Update visualization from snapshots
       if (result.snapshots.length > 0) {
         const lastSnapshot = result.snapshots[result.snapshots.length - 1];
         setBlochVectors(lastSnapshot.bloch_vectors);
@@ -54,23 +51,20 @@ export function ControlPanel() {
     },
     onError: (error) => {
       console.error('Error running circuit:', error);
-      alert('Error running circuit. Check console for details.');
+      alert('ERROR: Check console');
     },
   });
 
-  // Export QASM mutation
   const exportMutation = useMutation({
     mutationFn: async () => {
       if (!circuitId) {
-        // Create circuit first
-        const circuit = await createCircuit(nQubits, name, operations);
+        const circuit = await createCircuit(nQubits, name, toOperationsPayload());
         setCircuitId(circuit.id);
         return exportOpenQASM(circuit.id);
       }
       return exportOpenQASM(circuitId);
     },
     onSuccess: (data) => {
-      // Download as file
       const blob = new Blob([data.qasm], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -99,53 +93,42 @@ export function ControlPanel() {
   };
 
   return (
-    <div className="flex items-center justify-between gap-4">
+    <div className="flex items-center justify-between gap-4 text-xs">
       {/* Left: Run controls */}
       <div className="flex items-center gap-2">
         <button
           onClick={handleRun}
           disabled={runMutation.isPending || operations.length === 0}
-          className="flex items-center gap-2 px-4 py-2 bg-quantum-600 hover:bg-quantum-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
+          className="px-4 py-2 bg-white text-black font-bold uppercase disabled:bg-gray-600 disabled:text-gray-400"
         >
-          {runMutation.isPending ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Running...
-            </>
-          ) : (
-            <>
-              <Play className="w-4 h-4" />
-              Run
-            </>
-          )}
+          {runMutation.isPending ? 'RUNNING...' : 'RUN'}
         </button>
 
         <button
           onClick={handleReset}
-          className="p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
-          title="Reset execution"
+          className="px-3 py-2 border border-gray-600 hover:border-white font-bold uppercase"
+          title="Reset"
         >
-          <RotateCcw className="w-4 h-4" />
+          RST
         </button>
 
         <button
           onClick={handleClear}
-          className="p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
-          title="Clear circuit"
+          className="px-3 py-2 border border-gray-600 hover:border-white font-bold uppercase"
+          title="Clear"
         >
-          <Trash2 className="w-4 h-4" />
+          CLR
         </button>
       </div>
 
       {/* Center: Settings */}
       <div className="flex items-center gap-4">
-        {/* Shots */}
         <div className="flex items-center gap-2">
-          <label className="text-sm text-slate-400">Shots:</label>
+          <span className="text-gray-500 uppercase">SHOTS</span>
           <select
             value={shots}
             onChange={(e) => setShots(parseInt(e.target.value))}
-            className="bg-slate-700 rounded px-2 py-1 text-sm"
+            className="bg-black border border-gray-600 px-2 py-1"
           >
             <option value={100}>100</option>
             <option value={1024}>1024</option>
@@ -154,28 +137,26 @@ export function ControlPanel() {
           </select>
         </div>
 
-        {/* Mode */}
         <div className="flex items-center gap-2">
-          <label className="text-sm text-slate-400">Mode:</label>
+          <span className="text-gray-500 uppercase">MODE</span>
           <select
             value={mode}
             onChange={(e) => setMode(e.target.value as 'statevector' | 'density_matrix')}
-            className="bg-slate-700 rounded px-2 py-1 text-sm"
+            className="bg-black border border-gray-600 px-2 py-1"
           >
-            <option value="statevector">State Vector</option>
-            <option value="density_matrix">Density Matrix</option>
+            <option value="statevector">SV</option>
+            <option value="density_matrix">DM</option>
           </select>
         </div>
 
-        {/* Record snapshots toggle */}
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
             checked={recordSnapshots}
             onChange={(e) => setRecordSnapshots(e.target.checked)}
-            className="rounded border-slate-500"
+            className="w-3 h-3"
           />
-          <span className="text-sm text-slate-400">Record steps</span>
+          <span className="text-gray-500 uppercase">SNAP</span>
         </label>
       </div>
 
@@ -184,16 +165,14 @@ export function ControlPanel() {
         <button
           onClick={() => exportMutation.mutate()}
           disabled={exportMutation.isPending || operations.length === 0}
-          className="flex items-center gap-2 px-3 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 rounded-lg text-sm transition-colors"
+          className="px-3 py-2 border border-gray-600 hover:border-white disabled:border-gray-700 disabled:text-gray-600 font-bold uppercase"
         >
-          <Download className="w-4 h-4" />
-          Export QASM
+          QASM
         </button>
 
-        {/* Circuit stats */}
-        <div className="text-xs text-slate-500 ml-2">
-          {operations.length} operations
-        </div>
+        <span className="text-gray-600">
+          {operations.length} OPS
+        </span>
       </div>
     </div>
   );

@@ -15,13 +15,20 @@ from .models import (
     DensityMatrixResponse, CircuitStatsResponse, BlochVector,
     StateSnapshotModel, ErrorResponse, OpenQASMExport,
     GroverRequest, GroverResponse, VQERequest, VQEResponse,
-    QFTRequest, TeleportationRequest, TeleportationResponse
+    QFTRequest, QFTResponse, TeleportationRequest, TeleportationResponse,
+    DeutschJozsaRequest, DeutschJozsaResponse,
 )
 from ..storage.redis_store import get_store, close_store, CircuitStore
 from ..circuit.circuit import QuantumCircuit, OperationType
 from ..circuit.executor import Executor, run_circuit, get_statevector, get_density_matrix
 from ..core.channels import NoiseModel, depolarizing_channel, amplitude_damping, phase_damping
 from ..analysis.circuit_stats import circuit_depth, gate_count, two_qubit_gate_count
+from ..algorithms import (
+    run_grover, optimal_iterations,
+    run_deutsch_jozsa,
+    qft_circuit, inverse_qft_circuit,
+    run_teleportation,
+)
 
 
 @asynccontextmanager
@@ -369,6 +376,134 @@ async def export_openqasm(circuit_id: str, version: str = "2.0"):
         qasm=qc.to_openqasm(version),
         version=version
     )
+
+
+# =============================================================================
+# Algorithms
+# =============================================================================
+
+@app.post("/api/algorithms/grover", response_model=GroverResponse)
+async def run_grover_algorithm(request: GroverRequest):
+    """Run Grover's search algorithm."""
+    try:
+        n_qubits = request.n_qubits
+        marked_states = request.marked_states
+        iterations = request.iterations
+
+        # Validate marked states
+        max_state = 2 ** n_qubits - 1
+        for state in marked_states:
+            if state < 0 or state > max_state:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Marked state {state} out of range [0, {max_state}]"
+                )
+
+        # Run Grover's algorithm
+        result, success_prob = run_grover(
+            n_qubits=n_qubits,
+            marked_states=marked_states,
+            iterations=iterations,
+            shots=1024
+        )
+
+        opt_iter = optimal_iterations(n_qubits, len(marked_states))
+        used_iter = iterations if iterations else opt_iter
+
+        return GroverResponse(
+            counts=result.counts,
+            shots=result.shots,
+            iterations_used=used_iter,
+            success_probability=success_prob,
+            optimal_iterations=opt_iter
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/algorithms/deutsch-jozsa", response_model=DeutschJozsaResponse)
+async def run_deutsch_jozsa_algorithm(request: DeutschJozsaRequest):
+    """Run Deutsch-Jozsa algorithm."""
+    try:
+        result = run_deutsch_jozsa(
+            n_qubits=request.n_qubits,
+            oracle_type=request.oracle_type,
+            shots=request.shots
+        )
+
+        return DeutschJozsaResponse(
+            oracle_type=result["oracle_type"],
+            detected_type=result["detected_type"],
+            correct=result["correct"],
+            counts=result["counts"],
+            shots=result["shots"],
+            zero_probability=result["zero_probability"]
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/algorithms/qft", response_model=QFTResponse)
+async def run_qft_algorithm(request: QFTRequest):
+    """Run Quantum Fourier Transform."""
+    try:
+        n_qubits = request.n_qubits
+        input_state = request.input_state or [0] * n_qubits
+        inverse = request.inverse
+
+        # Build circuit
+        qc = QuantumCircuit(n_qubits, name="qft_run")
+
+        # Prepare input state (computational basis)
+        for i, bit in enumerate(input_state):
+            if bit == 1:
+                qc.x(i)
+
+        # Apply QFT or inverse QFT
+        if inverse:
+            iqft = inverse_qft_circuit(n_qubits)
+            qc.compose(iqft)
+        else:
+            qft = qft_circuit(n_qubits)
+            qc.compose(qft)
+
+        # Measure
+        qc.measure_all()
+
+        # Run
+        result = run_circuit(qc, shots=request.shots)
+
+        return QFTResponse(
+            n_qubits=n_qubits,
+            input_state=input_state,
+            inverse=inverse,
+            counts=result.counts,
+            probabilities=result.get_probabilities(),
+            shots=result.shots
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/algorithms/teleportation", response_model=TeleportationResponse)
+async def run_teleportation_algorithm(request: TeleportationRequest):
+    """Run quantum teleportation demonstration."""
+    try:
+        result = run_teleportation(
+            theta=request.state_theta,
+            phi=request.state_phi,
+            shots=request.shots
+        )
+
+        return TeleportationResponse(
+            input_bloch=result["input_state"]["bloch"],
+            output_bloch=result["output_state"]["bloch"],
+            fidelity=result["fidelity"],
+            counts=result["counts"],
+            shots=result["shots"]
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # =============================================================================

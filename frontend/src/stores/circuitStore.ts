@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import type { Circuit, CircuitOperation, ExecutionResult, StateSnapshot, BlochVector, GateName } from '../types';
 
+// Initial qubit states
+export type QubitInitState = '0' | '1' | '+' | '-';
+
 interface CircuitState {
   // Circuit data
   circuitId: string | null;
@@ -8,6 +11,7 @@ interface CircuitState {
   nClassical: number;
   name: string;
   operations: CircuitOperation[];
+  initialStates: QubitInitState[];
 
   // Execution state
   executionState: 'idle' | 'running' | 'paused' | 'complete';
@@ -34,6 +38,9 @@ interface CircuitState {
   updateOperation: (index: number, op: CircuitOperation) => void;
   clearOperations: () => void;
   loadCircuit: (circuit: Circuit) => void;
+
+  // Initial state actions
+  setInitialState: (qubit: number, state: QubitInitState) => void;
 
   // Gate shortcuts
   addGate: (gate: GateName, qubits: number[], params?: number[]) => void;
@@ -62,12 +69,49 @@ interface CircuitState {
   reset: () => void;
 }
 
+// Convert initial state to gate operations
+function initStateToOps(qubit: number, state: QubitInitState): CircuitOperation[] {
+  switch (state) {
+    case '1':
+      // |1⟩ = X|0⟩
+      return [{
+        type: 'gate',
+        gate: { gate_name: 'X', qubits: [qubit], params: [] },
+        qubits: [qubit],
+      }];
+    case '+':
+      // |+⟩ = H|0⟩
+      return [{
+        type: 'gate',
+        gate: { gate_name: 'H', qubits: [qubit], params: [] },
+        qubits: [qubit],
+      }];
+    case '-':
+      // |−⟩ = HX|0⟩ = XH|0⟩ with phase, but simpler: X then H
+      return [
+        {
+          type: 'gate',
+          gate: { gate_name: 'X', qubits: [qubit], params: [] },
+          qubits: [qubit],
+        },
+        {
+          type: 'gate',
+          gate: { gate_name: 'H', qubits: [qubit], params: [] },
+          qubits: [qubit],
+        },
+      ];
+    default:
+      return [];
+  }
+}
+
 const initialState = {
   circuitId: null,
   nQubits: 2,
   nClassical: 2,
   name: 'circuit',
   operations: [],
+  initialStates: ['0', '0'] as QubitInitState[],
   executionState: 'idle' as const,
   currentStep: 0,
   snapshots: [],
@@ -89,6 +133,7 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
     nQubits: n,
     nClassical: n,
     operations: [],
+    initialStates: Array(n).fill('0') as QubitInitState[],
     blochVectors: Array(n).fill(null).map((_, i) => ({ qubit: i, x: 0, y: 0, z: 1 })),
     probabilities: Array(2 ** n).fill(0).map((_, i) => i === 0 ? 1 : 0),
   }),
@@ -115,10 +160,17 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
     nClassical: circuit.n_classical,
     name: circuit.name,
     operations: circuit.operations,
+    initialStates: Array(circuit.n_qubits).fill('0') as QubitInitState[],
     executionState: 'idle',
     currentStep: 0,
     snapshots: [],
     result: null,
+  }),
+
+  setInitialState: (qubit, state) => set((s) => {
+    const newStates = [...s.initialStates];
+    newStates[qubit] = state;
+    return { initialStates: newStates };
   }),
 
   addGate: (gate, qubits, params = []) => {
@@ -184,7 +236,18 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
 
   setRecordSnapshots: (record) => set({ recordSnapshots: record }),
 
-  toOperationsPayload: () => get().operations,
+  // Build operations with initialization gates prepended
+  toOperationsPayload: () => {
+    const { initialStates, operations } = get();
+    const initOps: CircuitOperation[] = [];
+
+    // Add initialization gates for non-|0⟩ states
+    initialStates.forEach((state, qubit) => {
+      initOps.push(...initStateToOps(qubit, state));
+    });
+
+    return [...initOps, ...operations];
+  },
 
   reset: () => set(initialState),
 }));

@@ -135,3 +135,84 @@ export async function healthCheck(): Promise<{ status: string; version: string }
   const response = await axios.get(`${API_BASE}/health`);
   return response.data;
 }
+
+// Algorithm API
+
+export interface GroverRequest {
+  n_qubits: number;
+  marked_states: number[];
+  iterations?: number;
+}
+
+export interface GroverResponse {
+  counts: Record<string, number>;
+  shots: number;
+  iterations_used: number;
+  success_probability: number;
+  optimal_iterations: number;
+}
+
+export async function runGrover(request: GroverRequest): Promise<GroverResponse> {
+  const response = await api.post('/algorithms/grover', request);
+  return response.data;
+}
+
+export interface DeutschJozsaRequest {
+  n_qubits: number;
+  oracle_type: 'constant_0' | 'constant_1' | 'balanced';
+  shots?: number;
+}
+
+export interface DeutschJozsaResponse {
+  oracle_type: string;
+  detected_type: string;
+  correct: boolean;
+  counts: Record<string, number>;
+  shots: number;
+  zero_probability: number;
+}
+
+export async function runDeutschJozsa(request: DeutschJozsaRequest): Promise<DeutschJozsaResponse> {
+  const response = await api.post('/algorithms/deutsch-jozsa', request);
+  return response.data;
+}
+
+export interface QFTRequest {
+  n_qubits: number;
+  input_state?: number[];
+  inverse?: boolean;
+  shots?: number;
+}
+
+export interface QFTResponse {
+  n_qubits: number;
+  input_state: number[];
+  inverse: boolean;
+  counts: Record<string, number>;
+  probabilities: Record<string, number>;
+  shots: number;
+}
+
+export async function runQFT(request: QFTRequest): Promise<QFTResponse> {
+  const response = await api.post('/algorithms/qft', request);
+  return response.data;
+}
+
+export interface TeleportationRequest {
+  state_theta: number;
+  state_phi: number;
+  shots?: number;
+}
+
+export interface TeleportationResponse {
+  input_bloch: { x: number; y: number; z: number };
+  output_bloch: { x: number; y: number; z: number };
+  fidelity: number;
+  counts: Record<string, number>;
+  shots: number;
+}
+
+export async function runTeleportation(request: TeleportationRequest): Promise<TeleportationResponse> {
+  const response = await api.post('/algorithms/teleportation', request);
+  return response.data;
+}

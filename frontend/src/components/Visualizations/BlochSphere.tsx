@@ -8,14 +8,11 @@ interface BlochStateProps {
   x: number;
   y: number;
   z: number;
-  color?: string;
 }
 
-function BlochState({ x, y, z, color = '#0c8ee6' }: BlochStateProps) {
+function BlochState({ x, y, z }: BlochStateProps) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const lineRef = useRef<THREE.Line>(null);
 
-  // Animate to new position
   useFrame(() => {
     if (meshRef.current) {
       meshRef.current.position.lerp(new THREE.Vector3(x, z, y), 0.1);
@@ -28,57 +25,35 @@ function BlochState({ x, y, z, color = '#0c8ee6' }: BlochStateProps) {
 
   return (
     <group>
-      {/* State arrow */}
       <Line
         points={arrowPoints}
-        color={color}
-        lineWidth={3}
+        color="#fff"
+        lineWidth={2}
       />
-      {/* State point */}
       <mesh ref={meshRef} position={[x, z, y]}>
-        <sphereGeometry args={[0.08, 16, 16]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} />
+        <sphereGeometry args={[0.06, 8, 8]} />
+        <meshBasicMaterial color="#fff" />
       </mesh>
     </group>
   );
 }
 
 function BlochSphereGeometry() {
-  const { blochVectors, selectedQubit, nQubits } = useCircuitStore();
+  const { blochVectors, selectedQubit } = useCircuitStore();
 
-  // Get the vector to display (selected qubit or first qubit)
   const displayQubit = selectedQubit ?? 0;
   const vector = blochVectors[displayQubit] || { x: 0, y: 0, z: 1 };
-
-  // Create sphere wireframe
-  const spherePoints = useMemo(() => {
-    const points: THREE.Vector3[] = [];
-    const segments = 32;
-
-    // Latitude circles
-    for (let lat = 0; lat <= 4; lat++) {
-      const theta = (lat / 4) * Math.PI;
-      for (let lon = 0; lon <= segments; lon++) {
-        const phi = (lon / segments) * 2 * Math.PI;
-        const x = Math.sin(theta) * Math.cos(phi);
-        const y = Math.sin(theta) * Math.sin(phi);
-        const z = Math.cos(theta);
-        points.push(new THREE.Vector3(x, z, y));
-      }
-    }
-
-    return points;
-  }, []);
 
   return (
     <group>
       {/* Transparent sphere */}
-      <Sphere args={[1, 32, 32]}>
-        <meshStandardMaterial
-          color="#1e293b"
+      <Sphere args={[1, 16, 16]}>
+        <meshBasicMaterial
+          color="#111"
           transparent
-          opacity={0.1}
+          opacity={0.3}
           side={THREE.DoubleSide}
+          wireframe
         />
       </Sphere>
 
@@ -90,7 +65,7 @@ function BlochSphereGeometry() {
             const theta = (i / 64) * 2 * Math.PI;
             return new THREE.Vector3(Math.cos(theta), 0, Math.sin(theta));
           })}
-          color="#475569"
+          color="#444"
           lineWidth={1}
         />
 
@@ -100,7 +75,7 @@ function BlochSphereGeometry() {
             const theta = (i / 64) * 2 * Math.PI;
             return new THREE.Vector3(Math.cos(theta), Math.sin(theta), 0);
           })}
-          color="#475569"
+          color="#444"
           lineWidth={1}
         />
 
@@ -110,7 +85,7 @@ function BlochSphereGeometry() {
             const theta = (i / 64) * 2 * Math.PI;
             return new THREE.Vector3(0, Math.sin(theta), Math.cos(theta));
           })}
-          color="#475569"
+          color="#444"
           lineWidth={1}
         />
       </group>
@@ -119,81 +94,74 @@ function BlochSphereGeometry() {
       <group>
         {/* X axis */}
         <Line
-          points={[new THREE.Vector3(-1.3, 0, 0), new THREE.Vector3(1.3, 0, 0)]}
-          color="#ef4444"
-          lineWidth={2}
+          points={[new THREE.Vector3(-1.2, 0, 0), new THREE.Vector3(1.2, 0, 0)]}
+          color="#666"
+          lineWidth={1}
         />
         <Text
-          position={[1.5, 0, 0]}
-          fontSize={0.15}
-          color="#ef4444"
+          position={[1.4, 0, 0]}
+          fontSize={0.12}
+          color="#666"
         >
           X
         </Text>
 
         {/* Y axis */}
         <Line
-          points={[new THREE.Vector3(0, 0, -1.3), new THREE.Vector3(0, 0, 1.3)]}
-          color="#22c55e"
-          lineWidth={2}
+          points={[new THREE.Vector3(0, 0, -1.2), new THREE.Vector3(0, 0, 1.2)]}
+          color="#666"
+          lineWidth={1}
         />
         <Text
-          position={[0, 0, 1.5]}
-          fontSize={0.15}
-          color="#22c55e"
+          position={[0, 0, 1.4]}
+          fontSize={0.12}
+          color="#666"
         >
           Y
         </Text>
 
         {/* Z axis */}
         <Line
-          points={[new THREE.Vector3(0, -1.3, 0), new THREE.Vector3(0, 1.3, 0)]}
-          color="#3b82f6"
-          lineWidth={2}
+          points={[new THREE.Vector3(0, -1.2, 0), new THREE.Vector3(0, 1.2, 0)]}
+          color="#666"
+          lineWidth={1}
         />
         <Text
-          position={[0, 1.5, 0]}
-          fontSize={0.15}
-          color="#3b82f6"
+          position={[0, 1.4, 0]}
+          fontSize={0.12}
+          color="#fff"
         >
           |0⟩
         </Text>
         <Text
-          position={[0, -1.5, 0]}
-          fontSize={0.15}
-          color="#3b82f6"
+          position={[0, -1.4, 0]}
+          fontSize={0.12}
+          color="#fff"
         >
           |1⟩
         </Text>
       </group>
 
-      {/* State vectors */}
+      {/* State vector */}
       <BlochState x={vector.x} y={vector.y} z={vector.z} />
 
-      {/* Reference states */}
+      {/* Reference points */}
       <group>
-        {/* |0⟩ - North pole */}
         <mesh position={[0, 1, 0]}>
-          <sphereGeometry args={[0.04, 8, 8]} />
-          <meshStandardMaterial color="#64748b" />
+          <sphereGeometry args={[0.03, 6, 6]} />
+          <meshBasicMaterial color="#444" />
         </mesh>
-
-        {/* |1⟩ - South pole */}
         <mesh position={[0, -1, 0]}>
-          <sphereGeometry args={[0.04, 8, 8]} />
-          <meshStandardMaterial color="#64748b" />
+          <sphereGeometry args={[0.03, 6, 6]} />
+          <meshBasicMaterial color="#444" />
         </mesh>
-
-        {/* |+⟩ - X+ */}
         <mesh position={[1, 0, 0]}>
-          <sphereGeometry args={[0.04, 8, 8]} />
-          <meshStandardMaterial color="#64748b" />
+          <sphereGeometry args={[0.03, 6, 6]} />
+          <meshBasicMaterial color="#444" />
         </mesh>
-
-        {/* |-⟩ - X- */}
         <mesh position={[-1, 0, 0]}>
-          <sphereGeometry args={[0.04, 8, 8]} />
-          <meshStandardMaterial color="#64748b" />
+          <sphereGeometry args={[0.03, 6, 6]} />
+          <meshBasicMaterial color="#444" />
         </mesh>
       </group>
     </group>
@@ -206,31 +174,29 @@ export function BlochSphere() {
   const vector = blochVectors[displayQubit] || { x: 0, y: 0, z: 1 };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 text-xs">
       {/* Qubit selector */}
       {nQubits > 1 && (
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           {Array.from({ length: nQubits }, (_, i) => (
             <button
               key={i}
               onClick={() => setSelectedQubit(i)}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+              className={`px-2 py-1 border font-bold ${
                 displayQubit === i
-                  ? 'bg-quantum-600 text-white'
-                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  ? 'border-white bg-white text-black'
+                  : 'border-gray-600 hover:border-white'
               }`}
             >
-              q{i}
+              Q{i}
             </button>
           ))}
         </div>
       )}
 
       {/* 3D Bloch sphere */}
-      <div className="aspect-square bg-slate-900 rounded-lg overflow-hidden">
+      <div className="aspect-square border border-gray-700 bg-black">
         <Canvas camera={{ position: [2.5, 2, 2.5], fov: 45 }}>
-          <ambientLight intensity={0.5} />
-          <pointLight position={[10, 10, 10]} intensity={1} />
           <BlochSphereGeometry />
           <OrbitControls
             enableZoom={true}
@@ -242,18 +208,18 @@ export function BlochSphere() {
       </div>
 
       {/* Coordinates */}
-      <div className="grid grid-cols-3 gap-2 text-sm">
-        <div className="bg-slate-700/50 rounded p-2 text-center">
-          <div className="text-red-400">X</div>
-          <div className="font-mono">{vector.x.toFixed(3)}</div>
+      <div className="grid grid-cols-3 gap-1">
+        <div className="border border-gray-700 p-2 text-center">
+          <div className="text-gray-600">X</div>
+          <div className="font-bold">{vector.x.toFixed(3)}</div>
         </div>
-        <div className="bg-slate-700/50 rounded p-2 text-center">
-          <div className="text-green-400">Y</div>
-          <div className="font-mono">{vector.y.toFixed(3)}</div>
+        <div className="border border-gray-700 p-2 text-center">
+          <div className="text-gray-600">Y</div>
+          <div className="font-bold">{vector.y.toFixed(3)}</div>
         </div>
-        <div className="bg-slate-700/50 rounded p-2 text-center">
-          <div className="text-blue-400">Z</div>
-          <div className="font-mono">{vector.z.toFixed(3)}</div>
+        <div className="border border-gray-700 p-2 text-center">
+          <div className="text-gray-600">Z</div>
+          <div className="font-bold">{vector.z.toFixed(3)}</div>
         </div>
       </div>
     </div>
