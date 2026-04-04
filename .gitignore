@@ -35,3 +35,15 @@ htmlcov/
 
 # Build outputs
 *.log
+frontend/dist/
+
+# Terraform
+infra/.terraform/
+infra/.terraform.lock.hcl
+infra/*.tfstate
+infra/*.tfstate.backup
+infra/terraform.tfvars
+
+# Claude / Playwright
+.claude/
+.playwright-mcp/
