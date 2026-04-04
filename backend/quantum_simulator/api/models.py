@@ -340,6 +340,153 @@ class TeleportationResponse(BaseModel):
 
 
 # =============================================================================
+# QPE Models
+# =============================================================================
+
+class QPERequest(BaseModel):
+    """Request to run Quantum Phase Estimation."""
+    n_precision: int = Field(4, ge=1, le=10)
+    unitary_type: Literal["phase_gate", "custom"] = "phase_gate"
+    phase: Optional[float] = 0.25  # For phase_gate: U|1⟩ = e^{2πi·phase}|1⟩
+    shots: int = 1024
+
+
+class QPEResponse(BaseModel):
+    """Result of QPE."""
+    estimated_phases: Dict[str, float]
+    dominant_phase: float
+    true_phases: List[float]
+    n_precision: int
+    phase_resolution: float
+    counts: Dict[str, int]
+
+
+# =============================================================================
+# VQE Models (enhanced)
+# =============================================================================
+
+class VQEResultModel(BaseModel):
+    """Enhanced VQE result."""
+    ground_energy: float
+    exact_energy: float
+    error: float
+    chemical_accuracy: bool
+    optimal_params: List[float]
+    convergence_history: List[float]
+    iterations: int
+    ansatz: str
+    hamiltonian: str
+
+
+# =============================================================================
+# QAOA Models
+# =============================================================================
+
+class QAOARequest(BaseModel):
+    """Request to run QAOA."""
+    problem_type: Literal["maxcut", "max_independent_set"] = "maxcut"
+    n_vertices: int = Field(4, ge=2, le=8)
+    edges: List[List[int]]  # [[0,1], [1,2], ...]
+    p_layers: int = Field(2, ge=1, le=5)
+    max_iterations: int = 200
+    shots: int = 1024
+
+
+class QAOAResponse(BaseModel):
+    """Result of QAOA."""
+    best_bitstring: str
+    best_cost: float
+    exact_solution: str
+    exact_cost: float
+    approximation_ratio: float
+    optimal_gammas: List[float]
+    optimal_betas: List[float]
+    convergence_history: List[float]
+    p_layers: int
+    problem_name: str
+
+
+# =============================================================================
+# QEC Models
+# =============================================================================
+
+class QECRequest(BaseModel):
+    """Request to run Quantum Error Correction demo."""
+    code: Literal["bit_flip", "phase_flip", "shor"] = "bit_flip"
+    logical_state: Literal["0", "1"] = "0"
+    error_type: Literal["X", "Y", "Z", "none"] = "X"
+    error_qubit: int = 0
+
+
+class QECResponse(BaseModel):
+    """Result of QEC."""
+    code_name: str
+    n_physical: int
+    n_logical: int
+    error_type: str
+    error_qubit: int
+    syndrome: str
+    corrected: bool
+    fidelity: float
+    logical_state: str
+
+
+# =============================================================================
+# Entanglement Models
+# =============================================================================
+
+class EntanglementAnalysisResponse(BaseModel):
+    """Full entanglement analysis result."""
+    n_qubits: int
+    single_qubit_entropies: List[float]
+    total_entanglement: float
+    half_chain_entropy: Optional[float] = None
+    pairwise_map: List[List[float]]
+    schmidt_rank: Optional[int] = None
+    schmidt_coefficients: Optional[List[float]] = None
+    is_entangled: Optional[bool] = None
+    entanglement_fraction: Optional[float] = None
+    concurrence: Optional[float] = None
+    entanglement_spectrum: List[float]
+
+
+# =============================================================================
+# Optimization Models
+# =============================================================================
+
+class OptimizationRequest(BaseModel):
+    """Request to optimize a circuit."""
+    passes: Optional[List[str]] = None  # None = all passes
+    iterations: int = Field(3, ge=1, le=10)
+
+
+class OptimizationResponse(BaseModel):
+    """Result of circuit optimization."""
+    circuit_id: str
+    original_depth: int
+    optimized_depth: int
+    original_gates: int
+    optimized_gates: int
+    original_cx: int
+    optimized_cx: int
+    gate_reduction_percent: float
+    passes_applied: List[str]
+
+
+# =============================================================================
+# QSVT Research Models
+# =============================================================================
+
+class QSVTDemoResponse(BaseModel):
+    """Result of QSVT unification demonstration."""
+    framework: Dict[str, str]
+    grover: Dict[str, str]
+    phase_estimation: Dict[str, str]
+    hhl: Dict[str, Any]
+    hamiltonian_sim: Dict[str, Any]
+
+
+# =============================================================================
 # Export/Import Models
 # =============================================================================
 

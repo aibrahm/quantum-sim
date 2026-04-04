@@ -8,6 +8,7 @@ from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, List, Optional
 import json
+import numpy as np
 
 from .models import (
     CircuitCreateRequest, CircuitUpdateRequest, CircuitResponse,
@@ -17,6 +18,13 @@ from .models import (
     GroverRequest, GroverResponse, VQERequest, VQEResponse,
     QFTRequest, QFTResponse, TeleportationRequest, TeleportationResponse,
     DeutschJozsaRequest, DeutschJozsaResponse,
+    QPERequest, QPEResponse,
+    VQEResultModel,
+    QAOARequest, QAOAResponse,
+    QECRequest, QECResponse,
+    EntanglementAnalysisResponse,
+    OptimizationRequest, OptimizationResponse,
+    QSVTDemoResponse,
 )
 from ..storage.redis_store import get_store, close_store, CircuitStore
 from ..circuit.circuit import QuantumCircuit, OperationType
@@ -28,7 +36,14 @@ from ..algorithms import (
     run_deutsch_jozsa,
     qft_circuit, inverse_qft_circuit,
     run_teleportation,
+    run_qpe,
+    run_vqe, run_h2_vqe, PauliHamiltonian, PauliTerm,
+    run_qaoa, QAOAProblem, run_maxcut_qaoa,
+    run_bit_flip_code, run_phase_flip_code, run_shor_code, compare_codes,
 )
+from ..optimization import optimize_circuit
+from ..analysis.entanglement import full_entanglement_analysis
+from ..research.qsvt import demonstrate_qsvt_unification
 
 
 @asynccontextmanager
@@ -502,6 +517,220 @@ async def run_teleportation_algorithm(request: TeleportationRequest):
             counts=result["counts"],
             shots=result["shots"]
         )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =============================================================================
+# QPE
+# =============================================================================
+
+@app.post("/api/algorithms/qpe", response_model=QPEResponse)
+async def run_qpe_algorithm(request: QPERequest):
+    """Run Quantum Phase Estimation."""
+    try:
+        # Build unitary based on type
+        if request.unitary_type == "phase_gate":
+            phase = request.phase
+            U = np.array([
+                [1, 0],
+                [0, np.exp(2j * np.pi * phase)]
+            ], dtype=complex)
+        else:
+            raise HTTPException(status_code=400, detail="Custom unitaries not yet supported via API")
+
+        result = run_qpe(U, n_precision=request.n_precision, shots=request.shots)
+
+        return QPEResponse(
+            estimated_phases={str(k): v for k, v in result['estimated_phases'].items()},
+            dominant_phase=result['dominant_phase'],
+            true_phases=result['true_phases'],
+            n_precision=result['n_precision'],
+            phase_resolution=result['phase_resolution'],
+            counts=result['counts']
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =============================================================================
+# VQE (enhanced)
+# =============================================================================
+
+@app.post("/api/algorithms/vqe", response_model=VQEResultModel)
+async def run_vqe_algorithm(request: VQERequest):
+    """Run Variational Quantum Eigensolver."""
+    try:
+        if request.hamiltonian_type == "h2":
+            result = run_h2_vqe(
+                bond_length=request.bond_length or 0.735,
+                ansatz_type=request.ansatz,
+                max_iterations=request.max_iterations
+            )
+        else:
+            # Custom Hamiltonian
+            if not request.custom_hamiltonian:
+                raise HTTPException(status_code=400, detail="Custom Hamiltonian terms required")
+            terms = [PauliTerm(t['coefficient'], t['paulis']) for t in request.custom_hamiltonian]
+            n_qubits = len(terms[0].paulis)
+            hamiltonian = PauliHamiltonian(terms=terms, n_qubits=n_qubits)
+            result = run_vqe(hamiltonian, ansatz_type=request.ansatz, max_iterations=request.max_iterations)
+
+        return VQEResultModel(
+            ground_energy=result.ground_energy,
+            exact_energy=result.exact_energy or 0.0,
+            error=abs(result.ground_energy - (result.exact_energy or 0.0)),
+            chemical_accuracy=result.chemical_accuracy,
+            optimal_params=result.optimal_params,
+            convergence_history=result.convergence_history,
+            iterations=result.iterations,
+            ansatz=result.ansatz,
+            hamiltonian=result.hamiltonian
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =============================================================================
+# QAOA
+# =============================================================================
+
+@app.post("/api/algorithms/qaoa", response_model=QAOAResponse)
+async def run_qaoa_algorithm(request: QAOARequest):
+    """Run Quantum Approximate Optimization Algorithm."""
+    try:
+        edges = [tuple(e) for e in request.edges]
+
+        if request.problem_type == "maxcut":
+            result = run_maxcut_qaoa(request.n_vertices, edges, p=request.p_layers,
+                                     max_iterations=request.max_iterations, shots=request.shots)
+        else:
+            problem = QAOAProblem.max_independent_set(request.n_vertices, edges)
+            result = run_qaoa(problem, p=request.p_layers,
+                             max_iterations=request.max_iterations, shots=request.shots)
+
+        return QAOAResponse(
+            best_bitstring=result.best_bitstring,
+            best_cost=result.best_cost,
+            exact_solution=result.exact_solution or "",
+            exact_cost=result.exact_cost or 0.0,
+            approximation_ratio=result.approximation_ratio or 0.0,
+            optimal_gammas=result.optimal_gammas,
+            optimal_betas=result.optimal_betas,
+            convergence_history=result.convergence_history,
+            p_layers=result.p_layers,
+            problem_name=result.problem_name
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =============================================================================
+# Quantum Error Correction
+# =============================================================================
+
+@app.post("/api/algorithms/qec", response_model=QECResponse)
+async def run_qec_algorithm(request: QECRequest):
+    """Run Quantum Error Correction demonstration."""
+    try:
+        if request.code == "bit_flip":
+            result = run_bit_flip_code(request.logical_state, request.error_qubit,
+                                        request.error_type != "none")
+        elif request.code == "phase_flip":
+            result = run_phase_flip_code(request.logical_state, request.error_qubit,
+                                          request.error_type != "none")
+        elif request.code == "shor":
+            result = run_shor_code(request.logical_state, request.error_type, request.error_qubit)
+        else:
+            raise HTTPException(status_code=400, detail=f"Unknown code: {request.code}")
+
+        return QECResponse(
+            code_name=result.code_name,
+            n_physical=result.n_physical,
+            n_logical=result.n_logical,
+            error_type=result.error_type,
+            error_qubit=result.error_qubit,
+            syndrome=result.syndrome,
+            corrected=result.corrected,
+            fidelity=result.fidelity,
+            logical_state=result.logical_state
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =============================================================================
+# Entanglement Analysis
+# =============================================================================
+
+@app.get("/api/circuit/{circuit_id}/entanglement", response_model=EntanglementAnalysisResponse)
+async def analyze_entanglement(circuit_id: str):
+    """Full entanglement analysis of a circuit's output state."""
+    store = await get_store()
+    qc = await store.get_circuit(circuit_id)
+
+    if qc is None:
+        raise HTTPException(status_code=404, detail="Circuit not found")
+
+    # Get state vector (remove measurements)
+    qc_copy = QuantumCircuit(qc.n_qubits, qc.n_classical, qc.name)
+    for op in qc.operations:
+        if op.op_type == OperationType.GATE:
+            qc_copy._add_gate(op.operation.gate_name, op.operation.qubits, op.operation.params)
+
+    sv = get_statevector(qc_copy)
+    analysis = full_entanglement_analysis(sv)
+
+    return EntanglementAnalysisResponse(**analysis)
+
+
+# =============================================================================
+# Circuit Optimization
+# =============================================================================
+
+@app.post("/api/circuit/{circuit_id}/optimize", response_model=OptimizationResponse)
+async def optimize_circuit_endpoint(circuit_id: str, request: OptimizationRequest):
+    """Optimize a quantum circuit."""
+    store = await get_store()
+    qc = await store.get_circuit(circuit_id)
+
+    if qc is None:
+        raise HTTPException(status_code=404, detail="Circuit not found")
+
+    result = optimize_circuit(qc, iterations=request.iterations)
+
+    # Save optimized circuit
+    opt_id = await store.generate_id()
+    await store.save_circuit(opt_id, result.optimized_circuit)
+
+    return OptimizationResponse(
+        circuit_id=opt_id,
+        original_depth=result.original_depth,
+        optimized_depth=result.optimized_depth,
+        original_gates=result.original_gate_count,
+        optimized_gates=result.optimized_gate_count,
+        original_cx=result.original_cx_count,
+        optimized_cx=result.optimized_cx_count,
+        gate_reduction_percent=result.reduction_percentage,
+        passes_applied=result.passes_applied
+    )
+
+
+# =============================================================================
+# QSVT Research Demo
+# =============================================================================
+
+@app.get("/api/research/qsvt")
+async def qsvt_demo():
+    """
+    Demonstrate QSVT as a unifying framework for quantum algorithms.
+
+    Based on: Gilyén, Su, Low, Wiebe - "Quantum Singular Value Transformations
+    and Beyond" (STOC 2019, arXiv:1806.01838)
+    """
+    try:
+        results = demonstrate_qsvt_unification()
+        return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
