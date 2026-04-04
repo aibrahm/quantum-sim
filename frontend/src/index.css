@@ -6,9 +6,9 @@
   font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', monospace;
   line-height: 1.4;
   font-weight: 400;
-  color-scheme: dark;
-  color: #fff;
-  background-color: #000;
+  color-scheme: light;
+  color: #1a1a2e;
+  background-color: #f0f0f5;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -18,44 +18,137 @@
 body {
   margin: 0;
   min-height: 100vh;
+  background: #f0f0f5;
 }
 
-/* Scrollbar - raw */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #c0c0d0; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9090a8; }
+
+/* Header accent stripe */
+.header-line {
+  height: 3px;
+  background: linear-gradient(90deg, #0077cc 0%, #00b4d8 25%, #7c3aed 50%, #f472b6 75%, #0077cc 100%);
 }
 
-::-webkit-scrollbar-track {
-  background: #000;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #444;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #666;
-}
-
-/* Circuit grid */
-.circuit-grid {
+/* Circuit grid area */
+.circuit-area {
+  background-color: #fafafe;
   background-image:
-    linear-gradient(to right, #222 1px, transparent 1px),
-    linear-gradient(to bottom, #222 1px, transparent 1px);
+    linear-gradient(to right, #ddd 1px, transparent 1px),
+    linear-gradient(to bottom, #ddd 1px, transparent 1px);
   background-size: 60px 60px;
 }
 
-/* Bloch sphere canvas */
-.bloch-canvas {
-  touch-action: none;
+/* Panel card */
+.panel {
+  background: #fff;
+  border: 1px solid #d0d0e0;
+  border-radius: 6px;
 }
 
-/* Remove all default button styling */
-button {
+/* Gate palette buttons */
+.gate-btn {
+  transition: all 0.12s ease;
+  background: #f5f5fa;
+  border: 1.5px solid #d0d0e0;
+  border-radius: 6px;
+  color: #333;
+  font-weight: 700;
+}
+.gate-btn:hover {
+  border-color: #0077cc;
+  background: #e8f4fd;
+  color: #0077cc;
+  box-shadow: 0 2px 8px rgba(0, 119, 204, 0.15);
+}
+.gate-btn.active {
+  background: #0077cc;
+  border-color: #0077cc;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 119, 204, 0.3);
+}
+
+/* Primary action button */
+.btn-accent {
+  background: linear-gradient(135deg, #0077cc, #00b4d8);
+  color: #fff;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  border: none;
+}
+.btn-accent:hover:not(:disabled) {
+  box-shadow: 0 4px 16px rgba(0, 119, 204, 0.3);
+  filter: brightness(1.08);
+}
+.btn-accent:disabled {
+  background: #d0d0e0;
+  color: #999;
+}
+
+/* Gradient bar fills */
+.bar-fill {
+  background: linear-gradient(90deg, #0077cc, #7c3aed);
+  border-radius: 2px;
+}
+.bar-fill-cyan {
+  background: linear-gradient(90deg, #00b4d8, #0077cc);
+  border-radius: 2px;
+}
+
+/* Glow (subtle on light) */
+.glow-accent {
+  box-shadow: 0 0 0 2px rgba(0, 119, 204, 0.25);
+}
+
+/* Range input */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: #d0d0e0;
+  border-radius: 2px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #0077cc;
   cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #0077cc;
+  cursor: pointer;
+  border: none;
 }
 
-button:disabled {
-  cursor: not-allowed;
+/* Select */
+select {
+  background: #fff !important;
+  border: 1px solid #d0d0e0 !important;
+  border-radius: 4px;
+  color: #333;
 }
+select:focus {
+  border-color: #0077cc !important;
+  outline: none;
+}
+
+/* Checkbox */
+input[type="checkbox"] {
+  accent-color: #0077cc;
+}
+
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }

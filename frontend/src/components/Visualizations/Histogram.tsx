@@ -36,15 +36,15 @@ export function Histogram() {
 
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-600 text-xs uppercase">
-        NO DATA - RUN CIRCUIT
+      <div className="flex items-center justify-center h-64 text-gray-600 text-xs uppercase tracking-wider">
+        NO DATA — RUN CIRCUIT
       </div>
     );
   }
 
   return (
     <div className="space-y-3 text-xs">
-      <div className="text-gray-500 uppercase font-bold">
+      <div className="text-gray-400 uppercase font-bold text-[10px] tracking-wider">
         {result ? 'MEASUREMENT' : 'PROBABILITY'}
       </div>
 
@@ -52,10 +52,10 @@ export function Histogram() {
         {data.map(({ label, value, count }) => (
           <div key={label}>
             <div className="flex items-center gap-2">
-              <span className="text-gray-500 w-16">|{label}⟩</span>
-              <div className="flex-1 h-4 border border-gray-700 bg-black">
+              <span className="text-accent font-bold w-16">|{label}⟩</span>
+              <div className="flex-1 h-5 border border-qborder bg-gray-50 rounded overflow-hidden">
                 <div
-                  className="h-full bg-white"
+                  className="h-full bar-fill rounded-sm"
                   style={{ width: `${(value / maxValue) * 100}%` }}
                 />
               </div>
@@ -72,7 +72,7 @@ export function Histogram() {
         ))}
       </div>
 
-      <div className="pt-2 border-t border-gray-700">
+      <div className="pt-2 border-t border-qborder">
         <div className="flex justify-between text-gray-600">
           <span>STATES: {data.length}</span>
           <span>MAX: {(maxValue * 100).toFixed(1)}%</span>

@@ -19,7 +19,7 @@ export function StateVector() {
 
   return (
     <div className="space-y-3 text-xs">
-      <div className="text-gray-500 uppercase font-bold">
+      <div className="text-gray-400 uppercase font-bold text-[10px] tracking-wider">
         STATE VECTOR
       </div>
 
@@ -32,12 +32,12 @@ export function StateVector() {
           {nonZeroAmps.slice(0, 16).map(({ label, magnitude, probability, phase }) => (
             <div key={label} className="space-y-0.5">
               <div className="flex items-center gap-2">
-                <span className="text-gray-500 w-14">
+                <span className="text-accent font-bold w-14">
                   |{label}⟩
                 </span>
-                <div className="flex-1 h-4 border border-gray-700 bg-black">
+                <div className="flex-1 h-5 border border-qborder bg-gray-50 rounded overflow-hidden">
                   <div
-                    className="h-full bg-white"
+                    className="h-full bar-fill-cyan rounded-sm"
                     style={{ width: `${(magnitude / maxMag) * 100}%` }}
                   />
                 </div>
@@ -61,7 +61,7 @@ export function StateVector() {
         </div>
       )}
 
-      <div className="pt-2 border-t border-gray-700 space-y-1">
+      <div className="pt-2 border-t border-qborder space-y-1">
         <div className="flex justify-between text-gray-600">
           <span>DIM</span>
           <span>2^{nQubits}={Math.pow(2, nQubits)}</span>

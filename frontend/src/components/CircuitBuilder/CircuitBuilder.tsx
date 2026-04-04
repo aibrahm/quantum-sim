@@ -65,8 +65,8 @@ export function CircuitBuilder() {
 
   return (
     <div
-      className={`border p-4 overflow-auto bg-black ${
-        dropTarget !== null ? 'border-white' : 'border-gray-600'
+      className={`circuit-area rounded-lg border p-4 overflow-auto shadow-sm ${
+        dropTarget !== null ? 'border-accent glow-accent' : 'border-qborder'
       }`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -86,17 +86,17 @@ export function CircuitBuilder() {
               y={20 + i * CELL_HEIGHT + WIRE_Y_OFFSET}
               textAnchor="end"
               dominantBaseline="middle"
-              className="fill-gray-400 text-xs"
+              className="fill-gray-700 text-xs font-bold"
               style={{ fontFamily: 'monospace' }}
             >
               q{i}
             </text>
             <text
               x={40}
-              y={20 + i * CELL_HEIGHT + WIRE_Y_OFFSET + 12}
+              y={20 + i * CELL_HEIGHT + WIRE_Y_OFFSET + 14}
               textAnchor="end"
               dominantBaseline="middle"
-              className={`text-[10px] ${initialStates[i] !== '0' ? 'fill-white' : 'fill-gray-600'}`}
+              className={`text-[10px] font-bold ${initialStates[i] !== '0' ? 'fill-blue-600' : 'fill-gray-400'}`}
               style={{ fontFamily: 'monospace' }}
             >
               {INIT_LABELS[initialStates[i]] || '|0⟩'}
@@ -112,8 +112,8 @@ export function CircuitBuilder() {
             y1={20 + i * CELL_HEIGHT + WIRE_Y_OFFSET}
             x2={circuitWidth + 60}
             y2={20 + i * CELL_HEIGHT + WIRE_Y_OFFSET}
-            stroke={dropTarget === i ? '#fff' : '#444'}
-            strokeWidth={dropTarget === i ? 2 : 1}
+            stroke={dropTarget === i ? '#0077cc' : '#888'}
+            strokeWidth={dropTarget === i ? 2.5 : 1.5}
           />
         ))}
 
@@ -124,8 +124,8 @@ export function CircuitBuilder() {
             y={20 + dropTarget * CELL_HEIGHT}
             width={circuitWidth}
             height={CELL_HEIGHT}
-            fill="rgba(255,255,255,0.05)"
-            stroke="#fff"
+            fill="rgba(0,119,204,0.06)"
+            stroke="#0077cc"
             strokeWidth={1}
             strokeDasharray="4,4"
             pointerEvents="none"
@@ -165,8 +165,8 @@ export function CircuitBuilder() {
                     y={y - 20}
                     width={40}
                     height={40}
-                    fill="#000"
-                    stroke={info?.color || '#666'}
+                    fill={info?.color === '#fff' ? '#dbeafe' : info?.color === '#aaa' ? '#ede9fe' : info?.color === '#888' ? '#dcfce7' : '#f3f4f6'}
+                    stroke={info?.color === '#fff' ? '#3b82f6' : info?.color === '#aaa' ? '#8b5cf6' : info?.color === '#888' ? '#22c55e' : '#9ca3af'}
                     strokeWidth={2}
                   />
                   <text
@@ -174,7 +174,7 @@ export function CircuitBuilder() {
                     y={y}
                     textAnchor="middle"
                     dominantBaseline="middle"
-                    fill={info?.color || '#666'}
+                    fill={info?.color === '#fff' ? '#1d4ed8' : info?.color === '#aaa' ? '#6d28d9' : info?.color === '#888' ? '#15803d' : '#555'}
                     className="text-xs font-bold pointer-events-none"
                     style={{ fontFamily: 'monospace' }}
                   >
@@ -186,7 +186,7 @@ export function CircuitBuilder() {
                       y={y + 28}
                       textAnchor="middle"
                       dominantBaseline="middle"
-                      className="fill-gray-500 text-[9px] pointer-events-none"
+                      className="fill-gray-400 text-[9px] pointer-events-none"
                       style={{ fontFamily: 'monospace' }}
                     >
                       {(op.gate.params[0] / Math.PI).toFixed(1)}π
@@ -212,7 +212,7 @@ export function CircuitBuilder() {
                     y1={minY}
                     x2={x}
                     y2={maxY}
-                    stroke={info?.color || '#666'}
+                    stroke={info?.color === '#fff' ? '#3b82f6' : info?.color === '#aaa' ? '#8b5cf6' : '#6b7280'}
                     strokeWidth={2}
                   />
 
@@ -222,14 +222,14 @@ export function CircuitBuilder() {
                         cx={x}
                         cy={y1}
                         r={6}
-                        fill={info?.color || '#666'}
+                        fill={info?.color === '#fff' ? '#3b82f6' : '#6b7280'}
                       />
                       <circle
                         cx={x}
                         cy={y2}
                         r={16}
                         fill="none"
-                        stroke={info?.color || '#666'}
+                        stroke={info?.color === '#fff' ? '#3b82f6' : info?.color === '#aaa' ? '#8b5cf6' : '#6b7280'}
                         strokeWidth={2}
                       />
                       <line
@@ -237,7 +237,7 @@ export function CircuitBuilder() {
                         y1={y2}
                         x2={x + 16}
                         y2={y2}
-                        stroke={info?.color || '#666'}
+                        stroke={info?.color === '#fff' ? '#3b82f6' : info?.color === '#aaa' ? '#8b5cf6' : '#6b7280'}
                         strokeWidth={2}
                       />
                       <line
@@ -245,7 +245,7 @@ export function CircuitBuilder() {
                         y1={y2 - 16}
                         x2={x}
                         y2={y2 + 16}
-                        stroke={info?.color || '#666'}
+                        stroke={info?.color === '#fff' ? '#3b82f6' : info?.color === '#aaa' ? '#8b5cf6' : '#6b7280'}
                         strokeWidth={2}
                       />
                     </>
@@ -257,7 +257,7 @@ export function CircuitBuilder() {
                         width={40}
                         height={40}
                         fill="#000"
-                        stroke={info?.color || '#666'}
+                        stroke={info?.color === '#fff' ? '#3b82f6' : info?.color === '#aaa' ? '#8b5cf6' : '#6b7280'}
                         strokeWidth={2}
                       />
                       <rect
@@ -266,7 +266,7 @@ export function CircuitBuilder() {
                         width={40}
                         height={40}
                         fill="#000"
-                        stroke={info?.color || '#666'}
+                        stroke={info?.color === '#fff' ? '#3b82f6' : info?.color === '#aaa' ? '#8b5cf6' : '#6b7280'}
                         strokeWidth={2}
                       />
                       <text
@@ -274,7 +274,7 @@ export function CircuitBuilder() {
                         y={(y1 + y2) / 2}
                         textAnchor="middle"
                         dominantBaseline="middle"
-                        fill={info?.color || '#666'}
+                        fill={info?.color === '#fff' ? '#3b82f6' : '#6b7280'}
                         className="text-xs font-bold pointer-events-none"
                         style={{ fontFamily: 'monospace' }}
                       >
@@ -300,7 +300,7 @@ export function CircuitBuilder() {
                     y1={minY}
                     x2={x}
                     y2={maxY}
-                    stroke={info?.color || '#666'}
+                    stroke={info?.color === '#fff' ? '#3b82f6' : info?.color === '#aaa' ? '#8b5cf6' : '#6b7280'}
                     strokeWidth={2}
                   />
                   <circle cx={x} cy={ys[0]} r={6} fill={info?.color || '#666'} />
@@ -310,7 +310,7 @@ export function CircuitBuilder() {
                     cy={ys[2]}
                     r={16}
                     fill="none"
-                    stroke={info?.color || '#666'}
+                    stroke={info?.color === '#fff' ? '#3b82f6' : info?.color === '#aaa' ? '#8b5cf6' : '#6b7280'}
                     strokeWidth={2}
                   />
                   <line
@@ -318,7 +318,7 @@ export function CircuitBuilder() {
                     y1={ys[2]}
                     x2={x + 16}
                     y2={ys[2]}
-                    stroke={info?.color || '#666'}
+                    stroke={info?.color === '#fff' ? '#3b82f6' : info?.color === '#aaa' ? '#8b5cf6' : '#6b7280'}
                     strokeWidth={2}
                   />
                   <line
@@ -326,7 +326,7 @@ export function CircuitBuilder() {
                     y1={ys[2] - 16}
                     x2={x}
                     y2={ys[2] + 16}
-                    stroke={info?.color || '#666'}
+                    stroke={info?.color === '#fff' ? '#3b82f6' : info?.color === '#aaa' ? '#8b5cf6' : '#6b7280'}
                     strokeWidth={2}
                   />
                 </g>
@@ -347,14 +347,14 @@ export function CircuitBuilder() {
                     y={y - 20}
                     width={40}
                     height={40}
-                    fill="#000"
-                    stroke="#666"
+                    fill="#fef3c7"
+                    stroke="#d97706"
                     strokeWidth={2}
                   />
                   <path
                     d={`M ${x - 10} ${y + 5} Q ${x} ${y - 15} ${x + 10} ${y + 5}`}
                     fill="none"
-                    stroke="#666"
+                    stroke="#d97706"
                     strokeWidth={2}
                   />
                   <line
@@ -362,7 +362,7 @@ export function CircuitBuilder() {
                     y1={y - 5}
                     x2={x + 8}
                     y2={y - 12}
-                    stroke="#666"
+                    stroke="#d97706"
                     strokeWidth={2}
                   />
                 </g>
@@ -386,7 +386,7 @@ export function CircuitBuilder() {
                   y1={y1}
                   x2={x}
                   y2={y2}
-                  stroke="#666"
+                  stroke="#9ca3af"
                   strokeWidth={2}
                   strokeDasharray="4,4"
                 />
@@ -404,7 +404,7 @@ export function CircuitBuilder() {
             y={(nQubits * CELL_HEIGHT) / 2 + 20}
             textAnchor="middle"
             dominantBaseline="middle"
-            className="fill-gray-600 text-xs uppercase"
+            className="fill-gray-400 text-sm uppercase"
             style={{ fontFamily: 'monospace' }}
           >
             DRAG GATES HERE

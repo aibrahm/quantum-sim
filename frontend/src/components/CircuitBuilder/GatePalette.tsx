@@ -70,21 +70,21 @@ export function GatePalette() {
   return (
     <div className="p-3 text-xs">
       {/* Qubit count control */}
-      <div className="mb-4 border border-gray-600 p-2">
-        <div className="text-gray-500 uppercase mb-2">QUBITS</div>
+      <div className="mb-4 panel p-2">
+        <div className="text-gray-400 uppercase text-[10px] tracking-wider mb-2 font-bold">QUBITS</div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setNQubits(Math.max(1, nQubits - 1))}
             disabled={nQubits <= 1}
-            className="w-8 h-8 border border-white disabled:border-gray-600 disabled:text-gray-600 font-bold"
+            className="w-8 h-8 border border-qborder hover:border-accent hover:bg-blue-50 text-accent disabled:border-gray-200 disabled:text-gray-300 font-bold rounded-md transition-all"
           >
             -
           </button>
-          <span className="w-8 text-center text-lg font-bold">{nQubits}</span>
+          <span className="w-8 text-center text-lg font-bold text-gray-800">{nQubits}</span>
           <button
             onClick={() => setNQubits(Math.min(10, nQubits + 1))}
             disabled={nQubits >= 10}
-            className="w-8 h-8 border border-white disabled:border-gray-600 disabled:text-gray-600 font-bold"
+            className="w-8 h-8 border border-qborder hover:border-accent hover:bg-blue-50 text-accent disabled:border-gray-200 disabled:text-gray-300 font-bold rounded-md transition-all"
           >
             +
           </button>
@@ -92,8 +92,8 @@ export function GatePalette() {
       </div>
 
       {/* Initial states */}
-      <div className="mb-4 border border-gray-600 p-2">
-        <div className="text-gray-500 uppercase mb-2">INIT STATE</div>
+      <div className="mb-4 panel p-2">
+        <div className="text-gray-400 uppercase text-[10px] tracking-wider mb-2 font-bold">INIT STATE</div>
         <div className="space-y-1">
           {Array.from({ length: nQubits }, (_, i) => (
             <div key={i} className="flex items-center gap-2">
@@ -105,8 +105,8 @@ export function GatePalette() {
                     onClick={() => setInitialState(i, value)}
                     className={`flex-1 py-1 border font-bold ${
                       initialStates[i] === value
-                        ? 'border-white bg-white text-black'
-                        : 'border-gray-600 hover:border-white'
+                        ? 'border-accent bg-accent text-white'
+                        : 'border-qborder hover:border-accent/50 hover:bg-blue-50'
                     }`}
                   >
                     {label}
@@ -119,24 +119,24 @@ export function GatePalette() {
       </div>
 
       {/* Drag hint */}
-      <div className="mb-2 text-gray-600 text-[10px] uppercase">
+      <div className="mb-2 text-gray-400 text-[10px] uppercase font-bold tracking-wider">
         DRAG GATES TO CIRCUIT
       </div>
 
       {/* Gate categories */}
       <div className="space-y-1">
         {Object.entries(GATE_CATEGORIES).map(([key, category]) => (
-          <div key={key} className="border border-gray-600">
+          <div key={key} className="panel overflow-hidden">
             <button
               onClick={() => toggleCategory(key)}
-              className="w-full flex items-center justify-between px-2 py-1 text-left hover:bg-gray-900"
+              className="w-full flex items-center justify-between px-2 py-1.5 text-left hover:bg-surface-2 transition-colors"
             >
-              <span className="uppercase font-bold">{category.name}</span>
+              <span className="uppercase font-bold text-[10px] tracking-wider text-gray-300">{category.name}</span>
               <span>{expandedCategories.has(key) ? '−' : '+'}</span>
             </button>
 
             {expandedCategories.has(key) && (
-              <div className="p-2 grid grid-cols-4 gap-1 border-t border-gray-600">
+              <div className="p-2 grid grid-cols-4 gap-1 border-t border-qborder">
                 {category.gates.map((gate) => {
                   const info = GATE_INFO[gate];
                   return (
@@ -146,10 +146,10 @@ export function GatePalette() {
                       onDragStart={(e) => handleDragStart(e, gate)}
                       onClick={() => handleGateClick(gate)}
                       title={`${info.description} (drag to circuit)`}
-                      className={`aspect-square flex items-center justify-center text-[10px] font-bold border cursor-grab active:cursor-grabbing ${
+                      className={`gate-btn aspect-square flex items-center justify-center text-[10px] font-bold border rounded cursor-grab active:cursor-grabbing ${
                         selectedGate === gate
-                          ? 'border-white bg-white text-black'
-                          : 'border-gray-600 hover:border-white'
+                          ? 'active'
+                          : ''
                       }`}
                     >
                       {info.symbol}
@@ -164,7 +164,7 @@ export function GatePalette() {
 
       {/* Selected gate configuration */}
       {selectedGate && (
-        <div className="mt-3 p-2 border border-white">
+        <div className="mt-3 p-2 panel border-accent/50 glow-accent">
           <div className="font-bold uppercase mb-1">{GATE_INFO[selectedGate].displayName}</div>
           <div className="text-gray-500 mb-2">
             {GATE_INFO[selectedGate].description}
@@ -229,7 +229,7 @@ export function GatePalette() {
 
           <button
             onClick={handleAddGate}
-            className="w-full py-1 bg-white text-black font-bold uppercase"
+            className="w-full py-1 btn-accent rounded text-[10px]"
           >
             ADD
           </button>
@@ -240,13 +240,13 @@ export function GatePalette() {
       <div className="mt-3 space-y-1">
         <button
           onClick={handleAddMeasurement}
-          className="w-full py-1 border border-gray-600 hover:border-white font-bold uppercase"
+          className="w-full py-1 border border-qborder hover:border-accent/50 hover:text-accent font-bold uppercase rounded transition-colors text-[10px] tracking-wider"
         >
           MEASURE ALL
         </button>
         <button
           onClick={() => addBarrier(Array.from({ length: nQubits }, (_, i) => i))}
-          className="w-full py-1 border border-gray-600 hover:border-white font-bold uppercase"
+          className="w-full py-1 border border-qborder hover:border-accent/50 hover:text-accent font-bold uppercase rounded transition-colors text-[10px] tracking-wider"
         >
           BARRIER
         </button>

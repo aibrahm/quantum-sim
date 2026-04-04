@@ -1,11 +1,8 @@
-import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useCircuitStore } from '../stores/circuitStore';
 import { createCircuit, runCircuit, exportOpenQASM } from '../api/client';
 
 export function ControlPanel() {
-  const [isRunning, setIsRunning] = useState(false);
-
   const {
     nQubits,
     name,
@@ -76,9 +73,7 @@ export function ControlPanel() {
   });
 
   const handleRun = () => {
-    setIsRunning(true);
     runMutation.mutate();
-    setIsRunning(false);
   };
 
   const handleReset = () => {
@@ -99,14 +94,14 @@ export function ControlPanel() {
         <button
           onClick={handleRun}
           disabled={runMutation.isPending || operations.length === 0}
-          className="px-4 py-2 bg-white text-black font-bold uppercase disabled:bg-gray-600 disabled:text-gray-400"
+          className="px-5 py-2 btn-accent rounded text-[10px] tracking-widest"
         >
-          {runMutation.isPending ? 'RUNNING...' : 'RUN'}
+          {runMutation.isPending ? 'RUNNING...' : '▶ RUN'}
         </button>
 
         <button
           onClick={handleReset}
-          className="px-3 py-2 border border-gray-600 hover:border-white font-bold uppercase"
+          className="px-3 py-2 border border-qborder hover:border-accent/50 hover:text-accent font-bold uppercase rounded transition-colors text-[10px]"
           title="Reset"
         >
           RST
@@ -114,7 +109,7 @@ export function ControlPanel() {
 
         <button
           onClick={handleClear}
-          className="px-3 py-2 border border-gray-600 hover:border-white font-bold uppercase"
+          className="px-3 py-2 border border-qborder hover:border-red-500/50 hover:text-red-400 font-bold uppercase rounded transition-colors text-[10px]"
           title="Clear"
         >
           CLR
@@ -124,7 +119,7 @@ export function ControlPanel() {
       {/* Center: Settings */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <span className="text-gray-500 uppercase">SHOTS</span>
+          <span className="text-gray-500 uppercase text-[10px]">SHOTS</span>
           <select
             value={shots}
             onChange={(e) => setShots(parseInt(e.target.value))}
@@ -138,7 +133,7 @@ export function ControlPanel() {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-gray-500 uppercase">MODE</span>
+          <span className="text-gray-500 uppercase text-[10px]">MODE</span>
           <select
             value={mode}
             onChange={(e) => setMode(e.target.value as 'statevector' | 'density_matrix')}
@@ -165,7 +160,7 @@ export function ControlPanel() {
         <button
           onClick={() => exportMutation.mutate()}
           disabled={exportMutation.isPending || operations.length === 0}
-          className="px-3 py-2 border border-gray-600 hover:border-white disabled:border-gray-700 disabled:text-gray-600 font-bold uppercase"
+          className="px-3 py-2 border border-qborder hover:border-accent-purple/50 hover:text-accent-purple disabled:border-qborder disabled:text-gray-600 font-bold uppercase rounded transition-colors text-[10px]"
         >
           QASM
         </button>
