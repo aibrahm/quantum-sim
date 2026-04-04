@@ -1,0 +1,274 @@
+{
+  "version": 4,
+  "terraform_version": "1.9.8",
+  "serial": 15,
+  "lineage": "98faa7a0-2b4e-0ee2-7ea0-9d06d7ed1666",
+  "outputs": {
+    "frontend_bucket_name": {
+      "value": "quantum-circuit-sim-frontend-20260404040723871700000001",
+      "type": "string"
+    },
+    "frontend_website_url": {
+      "value": "quantum-circuit-sim-frontend-20260404040723871700000001.s3-website-us-east-1.amazonaws.com",
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "mode": "data",
+      "type": "aws_ami",
+      "name": "amazon_linux",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "architecture": "x86_64",
+            "arn": "arn:aws:ec2:us-east-1::image/ami-0190ba1cb5ab4e9e8",
+            "block_device_mappings": [
+              {
+                "device_name": "/dev/xvda",
+                "ebs": {
+                  "delete_on_termination": "true",
+                  "encrypted": "false",
+                  "iops": "3000",
+                  "snapshot_id": "snap-03318520a99c39d8c",
+                  "throughput": "125",
+                  "volume_initialization_rate": "0",
+                  "volume_size": "8",
+                  "volume_type": "gp3"
+                },
+                "no_device": "",
+                "virtual_name": ""
+              }
+            ],
+            "boot_mode": "uefi-preferred",
+            "creation_date": "2026-03-30T20:19:12.000Z",
+            "deprecation_time": "2026-06-28T20:25:00.000Z",
+            "description": "Amazon Linux 2023 AMI 2023.10.20260330.0 x86_64 HVM kernel-6.18",
+            "ena_support": true,
+            "executable_users": null,
+            "filter": [
+              {
+                "name": "name",
+                "values": [
+                  "al2023-ami-2023*-x86_64"
+                ]
+              },
+              {
+                "name": "virtualization-type",
+                "values": [
+                  "hvm"
+                ]
+              }
+            ],
+            "hypervisor": "xen",
+            "id": "ami-0190ba1cb5ab4e9e8",
+            "image_id": "ami-0190ba1cb5ab4e9e8",
+            "image_location": "amazon/al2023-ami-2023.10.20260330.0-kernel-6.18-x86_64",
+            "image_owner_alias": "amazon",
+            "image_type": "machine",
+            "imds_support": "v2.0",
+            "include_deprecated": false,
+            "kernel_id": "",
+            "last_launched_time": "",
+            "most_recent": true,
+            "name": "al2023-ami-2023.10.20260330.0-kernel-6.18-x86_64",
+            "name_regex": null,
+            "owner_id": "137112412989",
+            "owners": [
+              "amazon"
+            ],
+            "platform": "",
+            "platform_details": "Linux/UNIX",
+            "product_codes": [],
+            "public": true,
+            "ramdisk_id": "",
+            "root_device_name": "/dev/xvda",
+            "root_device_type": "ebs",
+            "root_snapshot_id": "snap-03318520a99c39d8c",
+            "sriov_net_support": "simple",
+            "state": "available",
+            "state_reason": {
+              "code": "UNSET",
+              "message": "UNSET"
+            },
+            "tags": {},
+            "timeouts": null,
+            "tpm_support": "",
+            "uefi_data": null,
+            "usage_operation": "RunInstances",
+            "virtualization_type": "hvm"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "mode": "data",
+      "type": "aws_caller_identity",
+      "name": "current",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "account_id": "385864240419",
+            "arn": "arn:aws:iam::385864240419:root",
+            "id": "385864240419",
+            "user_id": "385864240419"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "mode": "data",
+      "type": "aws_subnets",
+      "name": "default",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "filter": [
+              {
+                "name": "vpc-id",
+                "values": [
+                  "vpc-06536a5178c995031"
+                ]
+              }
+            ],
+            "id": "us-east-1",
+            "ids": [
+              "subnet-040220b395e9749fd",
+              "subnet-0dc7999aafd53866c",
+              "subnet-0d81b1d41b9a1f1b2",
+              "subnet-08508793ad830db02",
+              "subnet-0efb9307b74b85521",
+              "subnet-046512d775e8aeeec"
+            ],
+            "tags": null,
+            "timeouts": null
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "mode": "data",
+      "type": "aws_vpc",
+      "name": "default",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ec2:us-east-1:385864240419:vpc/vpc-06536a5178c995031",
+            "cidr_block": "172.31.0.0/16",
+            "cidr_block_associations": [
+              {
+                "association_id": "vpc-cidr-assoc-04115901477bde619",
+                "cidr_block": "172.31.0.0/16",
+                "state": "associated"
+              }
+            ],
+            "default": true,
+            "dhcp_options_id": "dopt-0669f9411281b1f4f",
+            "enable_dns_hostnames": true,
+            "enable_dns_support": true,
+            "enable_network_address_usage_metrics": false,
+            "filter": null,
+            "id": "vpc-06536a5178c995031",
+            "instance_tenancy": "default",
+            "ipv6_association_id": "",
+            "ipv6_cidr_block": "",
+            "main_route_table_id": "rtb-0aec165eaf9e3b425",
+            "owner_id": "385864240419",
+            "state": null,
+            "tags": {},
+            "timeouts": null
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "backend",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:us-east-1:385864240419:security-group/sg-066682248d7085c40",
+            "description": "Allow HTTP and SSH to backend",
+            "egress": [
+              {
+                "cidr_blocks": [
+                  "0.0.0.0/0"
+                ],
+                "description": "",
+                "from_port": 0,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "-1",
+                "security_groups": [],
+                "self": false,
+                "to_port": 0
+              }
+            ],
+            "id": "sg-066682248d7085c40",
+            "ingress": [
+              {
+                "cidr_blocks": [
+                  "0.0.0.0/0"
+                ],
+                "description": "Backend API",
+                "from_port": 8000,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "tcp",
+                "security_groups": [],
+                "self": false,
+                "to_port": 8000
+              },
+              {
+                "cidr_blocks": [
+                  "0.0.0.0/0"
+                ],
+                "description": "SSH access",
+                "from_port": 22,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "tcp",
+                "security_groups": [],
+                "self": false,
+                "to_port": 22
+              }
+            ],
+            "name": "quantum-circuit-sim-backend-20260404040723872100000002",
+            "name_prefix": "quantum-circuit-sim-backend-",
+            "owner_id": "385864240419",
+            "revoke_rules_on_delete": false,
+            "tags": {
+              "Name": "quantum-circuit-sim-backend-sg"
+            },
+            "tags_all": {
+              "Name": "quantum-circuit-sim-backend-sg"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-06536a5178c995031"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6OTAwMDAwMDAwMDAwfSwic2NoZW1hX3ZlcnNpb24iOiIxIn0=",
+          "dependencies": [
+            "data.aws_vpc.default"
+          ]
+        }
+      ]
+    }
+  ],
+  "check_results": null
+}
