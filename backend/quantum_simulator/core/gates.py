@@ -1,7 +1,4 @@
-"""
-Quantum Gates - All gates implemented as explicit NumPy matrices.
-No external quantum libraries used.
-"""
+"""Quantum gate matrices."""
 
 import numpy as np
 from typing import List, Optional
@@ -9,10 +6,6 @@ from functools import reduce
 
 # Type alias for gate matrices
 GateMatrix = np.ndarray
-
-# =============================================================================
-# Single-Qubit Gates
-# =============================================================================
 
 # Identity gate
 I: GateMatrix = np.array([
@@ -81,10 +74,6 @@ SXdg: GateMatrix = np.array([
 ], dtype=complex) / 2
 
 
-# =============================================================================
-# Rotation Gates
-# =============================================================================
-
 def Rx(theta: float) -> GateMatrix:
     """Rotation around X-axis by angle theta."""
     c = np.cos(theta / 2)
@@ -152,10 +141,6 @@ def U(theta: float, phi: float, lam: float, gamma: float = 0) -> GateMatrix:
     """General unitary gate with global phase."""
     return np.exp(1j * gamma) * U3(theta, phi, lam)
 
-
-# =============================================================================
-# Two-Qubit Gates
-# =============================================================================
 
 # CNOT (CX) gate - control on qubit 0, target on qubit 1
 CNOT: GateMatrix = np.array([
@@ -307,10 +292,6 @@ def Rzz(theta: float) -> GateMatrix:
     ], dtype=complex)
 
 
-# =============================================================================
-# Three-Qubit Gates
-# =============================================================================
-
 # Toffoli gate (CCNOT)
 TOFFOLI: GateMatrix = np.array([
     [1, 0, 0, 0, 0, 0, 0, 0],
@@ -348,21 +329,8 @@ def CCZ() -> GateMatrix:
     return ccz
 
 
-# =============================================================================
-# Helper Functions
-# =============================================================================
-
 def controlled(gate: GateMatrix, n_controls: int = 1) -> GateMatrix:
-    """
-    Create a controlled version of a gate with arbitrary number of control qubits.
-
-    Args:
-        gate: The gate matrix to be controlled
-        n_controls: Number of control qubits
-
-    Returns:
-        The controlled gate matrix
-    """
+    """Create a controlled version of a gate."""
     gate_size = gate.shape[0]
     n_target_qubits = int(np.log2(gate_size))
     total_qubits = n_controls + n_target_qubits
@@ -380,18 +348,7 @@ def controlled(gate: GateMatrix, n_controls: int = 1) -> GateMatrix:
 
 
 def tensor_gate(gate: GateMatrix, qubit: int, n_qubits: int) -> GateMatrix:
-    """
-    Expand a single-qubit gate to act on a specific qubit in an n-qubit system.
-    Uses tensor product: I ⊗ ... ⊗ Gate ⊗ ... ⊗ I
-
-    Args:
-        gate: Single-qubit gate matrix (2x2)
-        qubit: Target qubit index (0-indexed from right/LSB)
-        n_qubits: Total number of qubits
-
-    Returns:
-        Expanded gate matrix (2^n x 2^n)
-    """
+    """Expand a single-qubit gate to act on a specific qubit in an n-qubit system."""
     if n_qubits == 1:
         return gate
 
@@ -406,17 +363,7 @@ def tensor_gate(gate: GateMatrix, qubit: int, n_qubits: int) -> GateMatrix:
 
 
 def multi_qubit_gate(gate: GateMatrix, qubits: List[int], n_qubits: int) -> GateMatrix:
-    """
-    Expand a multi-qubit gate to act on specific qubits in an n-qubit system.
-
-    Args:
-        gate: Multi-qubit gate matrix
-        qubits: List of qubit indices the gate acts on (in order)
-        n_qubits: Total number of qubits
-
-    Returns:
-        Expanded gate matrix
-    """
+    """Expand a multi-qubit gate to act on specific qubits in an n-qubit system."""
     n_gate_qubits = len(qubits)
     gate_dim = 2 ** n_gate_qubits
     total_dim = 2 ** n_qubits
@@ -471,10 +418,6 @@ def gate_fidelity(gate1: GateMatrix, gate2: GateMatrix) -> float:
     return (np.abs(trace) ** 2) / (d ** 2)
 
 
-# =============================================================================
-# Gate Dictionary for Dynamic Lookup
-# =============================================================================
-
 SINGLE_QUBIT_GATES = {
     'I': I, 'X': X, 'Y': Y, 'Z': Z,
     'H': H, 'S': S, 'Sdg': Sdg, 'T': T, 'Tdg': Tdg,
@@ -500,16 +443,7 @@ PARAMETERIZED_GATES = {
 
 
 def get_gate(name: str, params: Optional[List[float]] = None) -> GateMatrix:
-    """
-    Get a gate matrix by name with optional parameters.
-
-    Args:
-        name: Gate name
-        params: Parameters for parameterized gates
-
-    Returns:
-        Gate matrix
-    """
+    """Look up a gate matrix by name, with optional parameters."""
     # Check single-qubit gates
     if name in SINGLE_QUBIT_GATES:
         return SINGLE_QUBIT_GATES[name]
@@ -529,24 +463,3 @@ def get_gate(name: str, params: Optional[List[float]] = None) -> GateMatrix:
         return PARAMETERIZED_GATES[name](*params)
 
     raise ValueError(f"Unknown gate: {name}")
-
-
-# Export all
-__all__ = [
-    # Single-qubit gates
-    'I', 'X', 'Y', 'Z', 'H', 'S', 'Sdg', 'T', 'Tdg', 'SX', 'SXdg',
-    # Rotation gates
-    'Rx', 'Ry', 'Rz', 'Phase', 'U1', 'U2', 'U3', 'U',
-    # Two-qubit gates
-    'CNOT', 'CX', 'CY', 'CZ', 'SWAP', 'iSWAP', 'SQSWAP', 'SQiSWAP',
-    'CRx', 'CRy', 'CRz', 'CPhase', 'CU', 'Rxx', 'Ryy', 'Rzz',
-    # Three-qubit gates
-    'TOFFOLI', 'CCNOT', 'CCX', 'FREDKIN', 'CSWAP', 'CCZ',
-    # Helper functions
-    'controlled', 'tensor_gate', 'multi_qubit_gate', 'is_unitary', 'gate_fidelity',
-    'get_gate',
-    # Gate collections
-    'SINGLE_QUBIT_GATES', 'TWO_QUBIT_GATES', 'THREE_QUBIT_GATES', 'PARAMETERIZED_GATES',
-    # Type
-    'GateMatrix',
-]

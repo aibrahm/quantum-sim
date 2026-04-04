@@ -1,7 +1,4 @@
-"""
-Grover's Search Algorithm Implementation.
-Provides quadratic speedup for unstructured search.
-"""
+"""Grover's search algorithm."""
 
 import numpy as np
 from typing import List, Optional, Callable, Tuple
@@ -11,35 +8,14 @@ from ..core.state_vector import StateVector
 
 
 def optimal_iterations(n_qubits: int, n_marked: int = 1) -> int:
-    """
-    Calculate optimal number of Grover iterations.
-
-    Args:
-        n_qubits: Number of qubits
-        n_marked: Number of marked (solution) states
-
-    Returns:
-        Optimal number of iterations ⌊π/4 √(N/M)⌋
-    """
+    """Optimal iteration count: floor(pi/4 * sqrt(N/M))."""
     N = 2 ** n_qubits
     M = n_marked
     return int(np.floor(np.pi / 4 * np.sqrt(N / M)))
 
 
 def create_oracle(n_qubits: int, marked_states: List[int]) -> QuantumCircuit:
-    """
-    Create an oracle circuit that marks specified states.
-
-    The oracle applies a phase of -1 to marked states:
-    O|x⟩ = -|x⟩ if x is marked, |x⟩ otherwise
-
-    Args:
-        n_qubits: Number of qubits
-        marked_states: List of computational basis state indices to mark
-
-    Returns:
-        QuantumCircuit implementing the oracle
-    """
+    """Create a phase oracle that flips marked states."""
     oracle = QuantumCircuit(n_qubits, name="oracle")
 
     for marked in marked_states:
@@ -78,18 +54,7 @@ def create_oracle(n_qubits: int, marked_states: List[int]) -> QuantumCircuit:
 
 
 def create_diffusion(n_qubits: int) -> QuantumCircuit:
-    """
-    Create the diffusion (Grover) operator.
-
-    D = 2|s⟩⟨s| - I where |s⟩ is the uniform superposition.
-    Implemented as: H⊗n · (2|0⟩⟨0| - I) · H⊗n
-
-    Args:
-        n_qubits: Number of qubits
-
-    Returns:
-        QuantumCircuit implementing diffusion
-    """
+    """Diffusion operator D = 2|s><s| - I."""
     diffusion = QuantumCircuit(n_qubits, name="diffusion")
 
     # Apply H gates
@@ -131,17 +96,7 @@ def grover_circuit(
     marked_states: List[int],
     iterations: Optional[int] = None
 ) -> QuantumCircuit:
-    """
-    Create complete Grover search circuit.
-
-    Args:
-        n_qubits: Number of qubits
-        marked_states: States to search for
-        iterations: Number of iterations (auto-calculated if None)
-
-    Returns:
-        Complete Grover circuit
-    """
+    """Build a complete Grover search circuit."""
     if iterations is None:
         iterations = optimal_iterations(n_qubits, len(marked_states))
 
@@ -170,18 +125,7 @@ def run_grover(
     iterations: Optional[int] = None,
     shots: int = 1024
 ) -> Tuple[ExecutionResult, float]:
-    """
-    Run Grover's algorithm and return results.
-
-    Args:
-        n_qubits: Number of qubits
-        marked_states: Target states
-        iterations: Number of Grover iterations
-        shots: Number of measurement shots
-
-    Returns:
-        Tuple of (ExecutionResult, success_probability)
-    """
+    """Run Grover's algorithm, returning (result, success_probability)."""
     if iterations is None:
         iterations = optimal_iterations(n_qubits, len(marked_states))
 
@@ -208,19 +152,7 @@ def grover_with_custom_oracle(
     n_marked: int = 1,
     shots: int = 1024
 ) -> ExecutionResult:
-    """
-    Run Grover with a custom oracle function.
-
-    Args:
-        n_qubits: Number of qubits
-        oracle_fn: Function that takes a circuit and adds oracle gates
-        iterations: Number of iterations
-        n_marked: Number of marked states (for iteration calculation)
-        shots: Measurement shots
-
-    Returns:
-        ExecutionResult
-    """
+    """Run Grover with a custom oracle function."""
     if iterations is None:
         iterations = optimal_iterations(n_qubits, n_marked)
 
@@ -241,46 +173,3 @@ def grover_with_custom_oracle(
 
     qc.measure_all()
     return run_circuit(qc, shots=shots)
-
-
-# Example usage functions
-def search_database(database_size: int, target_index: int, shots: int = 1024):
-    """
-    Example: Search for a target index in a database of given size.
-
-    Args:
-        database_size: Size of database (must be power of 2)
-        target_index: Index to find
-        shots: Number of measurements
-
-    Returns:
-        Search results
-    """
-    n_qubits = int(np.ceil(np.log2(database_size)))
-
-    if target_index >= 2 ** n_qubits:
-        raise ValueError(f"Target index {target_index} out of range")
-
-    result, success_prob = run_grover(n_qubits, [target_index], shots=shots)
-
-    return {
-        'database_size': database_size,
-        'target': target_index,
-        'success_probability': success_prob,
-        'optimal_iterations': optimal_iterations(n_qubits, 1),
-        'classical_probability': 1 / database_size,
-        'speedup': success_prob / (1 / database_size),
-        'counts': result.counts,
-    }
-
-
-# Export
-__all__ = [
-    'optimal_iterations',
-    'create_oracle',
-    'create_diffusion',
-    'grover_circuit',
-    'run_grover',
-    'grover_with_custom_oracle',
-    'search_database',
-]

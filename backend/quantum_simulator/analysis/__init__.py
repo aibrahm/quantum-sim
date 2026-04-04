@@ -21,6 +21,7 @@ from .entanglement import (
     mutual_information,
     entanglement_spectrum,
     pairwise_entanglement,
+    analyze_entanglement,
     full_entanglement_analysis,
 )
 
@@ -44,5 +45,6 @@ __all__ = [
     'mutual_information',
     'entanglement_spectrum',
     'pairwise_entanglement',
+    'analyze_entanglement',
     'full_entanglement_analysis',
 ]

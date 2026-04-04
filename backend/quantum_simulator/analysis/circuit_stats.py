@@ -22,15 +22,7 @@ THREE_QUBIT_GATES = {
 
 
 def gate_count(circuit: QuantumCircuit) -> Dict[str, int]:
-    """
-    Count occurrences of each gate type.
-
-    Args:
-        circuit: QuantumCircuit to analyze
-
-    Returns:
-        Dictionary mapping gate names to counts
-    """
+    """Count occurrences of each gate type."""
     counts: Dict[str, int] = defaultdict(int)
 
     for op in circuit.operations:
@@ -41,15 +33,7 @@ def gate_count(circuit: QuantumCircuit) -> Dict[str, int]:
 
 
 def two_qubit_gate_count(circuit: QuantumCircuit) -> int:
-    """
-    Count two-qubit gates.
-
-    Args:
-        circuit: QuantumCircuit to analyze
-
-    Returns:
-        Number of two-qubit gates
-    """
+    """Count two-qubit gates."""
     count = 0
     for op in circuit.operations:
         if op.op_type == OperationType.GATE:
@@ -61,15 +45,7 @@ def two_qubit_gate_count(circuit: QuantumCircuit) -> int:
 
 
 def three_qubit_gate_count(circuit: QuantumCircuit) -> int:
-    """
-    Count three-qubit gates.
-
-    Args:
-        circuit: QuantumCircuit to analyze
-
-    Returns:
-        Number of three-qubit gates
-    """
+    """Count three-qubit gates."""
     count = 0
     for op in circuit.operations:
         if op.op_type == OperationType.GATE:
@@ -81,15 +57,7 @@ def three_qubit_gate_count(circuit: QuantumCircuit) -> int:
 
 
 def circuit_depth(circuit: QuantumCircuit) -> int:
-    """
-    Calculate circuit depth (longest path through circuit).
-
-    Args:
-        circuit: QuantumCircuit to analyze
-
-    Returns:
-        Circuit depth
-    """
+    """Calculate circuit depth (longest path through circuit)."""
     if len(circuit) == 0:
         return 0
 
@@ -123,15 +91,7 @@ def circuit_depth(circuit: QuantumCircuit) -> int:
 
 
 def critical_path(circuit: QuantumCircuit) -> List[GateOperation]:
-    """
-    Find the critical path (longest dependency chain).
-
-    Args:
-        circuit: QuantumCircuit to analyze
-
-    Returns:
-        List of gates on critical path
-    """
+    """Find the critical path (longest dependency chain)."""
     if len(circuit) == 0:
         return []
 
@@ -196,15 +156,7 @@ def critical_path(circuit: QuantumCircuit) -> List[GateOperation]:
 
 
 def qubit_utilization(circuit: QuantumCircuit) -> Dict[int, float]:
-    """
-    Calculate utilization of each qubit (gates / depth).
-
-    Args:
-        circuit: QuantumCircuit to analyze
-
-    Returns:
-        Dictionary mapping qubit index to utilization (0-1)
-    """
+    """Calculate utilization of each qubit (gates / depth)."""
     depth = circuit_depth(circuit)
     if depth == 0:
         return {q: 0.0 for q in range(circuit.n_qubits)}
@@ -222,15 +174,7 @@ def qubit_utilization(circuit: QuantumCircuit) -> Dict[int, float]:
 
 
 def parameter_count(circuit: QuantumCircuit) -> int:
-    """
-    Count total number of parameters in circuit.
-
-    Args:
-        circuit: QuantumCircuit to analyze
-
-    Returns:
-        Total parameter count
-    """
+    """Count total number of parameters in circuit."""
     count = 0
     for op in circuit.operations:
         if op.op_type == OperationType.GATE:
@@ -239,15 +183,7 @@ def parameter_count(circuit: QuantumCircuit) -> int:
 
 
 def circuit_summary(circuit: QuantumCircuit) -> Dict:
-    """
-    Generate comprehensive circuit summary.
-
-    Args:
-        circuit: QuantumCircuit to analyze
-
-    Returns:
-        Dictionary with circuit statistics
-    """
+    """Circuit statistics summary."""
     gates = gate_count(circuit)
 
     return {
@@ -272,16 +208,3 @@ def circuit_summary(circuit: QuantumCircuit) -> Dict:
             if op.op_type == OperationType.BARRIER
         ),
     }
-
-
-# Export
-__all__ = [
-    'gate_count',
-    'two_qubit_gate_count',
-    'three_qubit_gate_count',
-    'circuit_depth',
-    'critical_path',
-    'qubit_utilization',
-    'parameter_count',
-    'circuit_summary',
-]

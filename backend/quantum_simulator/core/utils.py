@@ -1,7 +1,4 @@
-"""
-Utility functions for quantum simulation.
-Includes tensor products, partial trace, Bloch sphere conversion, and more.
-"""
+"""Utility functions for quantum simulation."""
 
 import numpy as np
 from typing import List, Tuple, Optional, Union
@@ -9,15 +6,7 @@ from functools import reduce
 
 
 def tensor_product(*matrices: np.ndarray) -> np.ndarray:
-    """
-    Compute the tensor (Kronecker) product of multiple matrices.
-
-    Args:
-        *matrices: Variable number of matrices to tensor together
-
-    Returns:
-        Tensor product of all input matrices
-    """
+    """Kronecker product of multiple matrices."""
     if len(matrices) == 0:
         return np.array([[1]], dtype=complex)
     if len(matrices) == 1:
@@ -27,17 +16,7 @@ def tensor_product(*matrices: np.ndarray) -> np.ndarray:
 
 
 def partial_trace(rho: np.ndarray, keep_qubits: List[int], n_qubits: int) -> np.ndarray:
-    """
-    Compute the partial trace of a density matrix, keeping specified qubits.
-
-    Args:
-        rho: Density matrix of shape (2^n, 2^n)
-        keep_qubits: List of qubit indices to keep (0-indexed)
-        n_qubits: Total number of qubits
-
-    Returns:
-        Reduced density matrix after tracing out other qubits
-    """
+    """Partial trace of a density matrix, keeping specified qubits."""
     if len(keep_qubits) == n_qubits:
         return rho.copy()
 
@@ -77,18 +56,7 @@ def partial_trace(rho: np.ndarray, keep_qubits: List[int], n_qubits: int) -> np.
 
 
 def partial_trace_simple(rho: np.ndarray, trace_out: List[int], n_qubits: int) -> np.ndarray:
-    """
-    Alternative partial trace implementation using explicit summation.
-    Traces out the specified qubits.
-
-    Args:
-        rho: Density matrix
-        trace_out: List of qubit indices to trace out
-        n_qubits: Total number of qubits
-
-    Returns:
-        Reduced density matrix
-    """
+    """Partial trace via explicit summation over traced-out qubits."""
     keep_qubits = [q for q in range(n_qubits) if q not in trace_out]
     n_keep = len(keep_qubits)
     n_trace = len(trace_out)
@@ -133,20 +101,7 @@ def partial_trace_simple(rho: np.ndarray, trace_out: List[int], n_qubits: int) -
 
 
 def state_to_bloch(state: np.ndarray) -> Tuple[float, float, float]:
-    """
-    Convert a single-qubit pure state to Bloch sphere coordinates.
-
-    The Bloch sphere representation: |ψ⟩ = cos(θ/2)|0⟩ + e^(iφ)sin(θ/2)|1⟩
-    Bloch vector: (sin(θ)cos(φ), sin(θ)sin(φ), cos(θ))
-
-    For mixed states (density matrix), uses ⟨σ⟩ expectation values.
-
-    Args:
-        state: Either a 2D state vector or 2x2 density matrix
-
-    Returns:
-        Tuple (x, y, z) representing Bloch sphere coordinates
-    """
+    """Convert a single-qubit state (vector or 2x2 density matrix) to Bloch (x,y,z)."""
     state = np.asarray(state)
 
     # Check if it's a density matrix
@@ -199,15 +154,7 @@ def state_to_bloch(state: np.ndarray) -> Tuple[float, float, float]:
 
 
 def bloch_to_state(x: float, y: float, z: float) -> np.ndarray:
-    """
-    Convert Bloch sphere coordinates to a quantum state vector.
-
-    Args:
-        x, y, z: Bloch sphere coordinates (should satisfy x² + y² + z² ≤ 1)
-
-    Returns:
-        2D state vector
-    """
+    """Convert Bloch sphere coordinates to a state vector."""
     r = np.sqrt(x**2 + y**2 + z**2)
 
     if r > 1 + 1e-10:
@@ -232,60 +179,23 @@ def bloch_to_state(x: float, y: float, z: float) -> np.ndarray:
 
 
 def computational_basis(n_qubits: int) -> List[str]:
-    """
-    Generate computational basis state labels.
-
-    Args:
-        n_qubits: Number of qubits
-
-    Returns:
-        List of binary strings ['00...0', '00...1', ..., '11...1']
-    """
+    """Generate computational basis state labels."""
     return [format(i, f'0{n_qubits}b') for i in range(2**n_qubits)]
 
 
 def state_label(index: int, n_qubits: int) -> str:
-    """
-    Get the ket label for a computational basis state.
-
-    Args:
-        index: Basis state index
-        n_qubits: Number of qubits
-
-    Returns:
-        String like '|010⟩'
-    """
+    """Ket label for a basis state index, e.g. '|010>'."""
     return f"|{format(index, f'0{n_qubits}b')}⟩"
 
 
 def embed_operator(op: np.ndarray, qubits: List[int], n_qubits: int) -> np.ndarray:
-    """
-    Embed an operator acting on specific qubits into the full Hilbert space.
-
-    Args:
-        op: Operator matrix
-        qubits: Qubit indices the operator acts on
-        n_qubits: Total number of qubits in the system
-
-    Returns:
-        Full operator acting on n_qubits
-    """
+    """Embed an operator into the full Hilbert space."""
     from .gates import I, multi_qubit_gate
     return multi_qubit_gate(op, qubits, n_qubits)
 
 
 def swap_qubits(state: np.ndarray, qubit1: int, qubit2: int, n_qubits: int) -> np.ndarray:
-    """
-    Swap two qubits in a state vector.
-
-    Args:
-        state: State vector of shape (2^n,)
-        qubit1, qubit2: Qubit indices to swap
-        n_qubits: Total number of qubits
-
-    Returns:
-        State vector with qubits swapped
-    """
+    """Swap two qubits in a state vector."""
     dim = 2 ** n_qubits
     result = np.zeros(dim, dtype=complex)
 
@@ -306,17 +216,7 @@ def swap_qubits(state: np.ndarray, qubit1: int, qubit2: int, n_qubits: int) -> n
 
 
 def reorder_qubits(state: np.ndarray, new_order: List[int], n_qubits: int) -> np.ndarray:
-    """
-    Reorder qubits in a state vector.
-
-    Args:
-        state: State vector
-        new_order: New qubit ordering (permutation)
-        n_qubits: Total number of qubits
-
-    Returns:
-        Reordered state vector
-    """
+    """Reorder qubits in a state vector by permutation."""
     dim = 2 ** n_qubits
     result = np.zeros(dim, dtype=complex)
 
@@ -332,16 +232,7 @@ def reorder_qubits(state: np.ndarray, new_order: List[int], n_qubits: int) -> np
 
 
 def fidelity_pure_states(state1: np.ndarray, state2: np.ndarray) -> float:
-    """
-    Calculate fidelity between two pure states.
-    F = |⟨ψ1|ψ2⟩|²
-
-    Args:
-        state1, state2: State vectors
-
-    Returns:
-        Fidelity value in [0, 1]
-    """
+    """Fidelity |<psi1|psi2>|^2 between two pure states."""
     overlap = np.vdot(state1, state2)
     return float(np.abs(overlap) ** 2)
 
@@ -407,16 +298,7 @@ def normalize_state(state: np.ndarray) -> np.ndarray:
 
 
 def random_state(n_qubits: int, seed: Optional[int] = None) -> np.ndarray:
-    """
-    Generate a random normalized state vector.
-
-    Args:
-        n_qubits: Number of qubits
-        seed: Random seed for reproducibility
-
-    Returns:
-        Random normalized state vector
-    """
+    """Generate a random normalized state vector."""
     if seed is not None:
         np.random.seed(seed)
 
@@ -428,16 +310,7 @@ def random_state(n_qubits: int, seed: Optional[int] = None) -> np.ndarray:
 
 
 def random_unitary(n: int, seed: Optional[int] = None) -> np.ndarray:
-    """
-    Generate a random unitary matrix using QR decomposition.
-
-    Args:
-        n: Dimension of the unitary matrix
-        seed: Random seed
-
-    Returns:
-        Random n×n unitary matrix
-    """
+    """Generate a Haar-random unitary matrix via QR decomposition."""
     if seed is not None:
         np.random.seed(seed)
 
@@ -471,31 +344,3 @@ def matrix_logarithm(A: np.ndarray) -> np.ndarray:
     """
     from scipy.linalg import logm
     return logm(A)
-
-
-# Export all
-__all__ = [
-    'tensor_product',
-    'partial_trace',
-    'partial_trace_simple',
-    'state_to_bloch',
-    'bloch_to_state',
-    'computational_basis',
-    'state_label',
-    'embed_operator',
-    'swap_qubits',
-    'reorder_qubits',
-    'fidelity_pure_states',
-    'inner_product',
-    'outer_product',
-    'projector',
-    'commutator',
-    'anticommutator',
-    'is_hermitian',
-    'is_positive_semidefinite',
-    'normalize_state',
-    'random_state',
-    'random_unitary',
-    'matrix_exponential',
-    'matrix_logarithm',
-]

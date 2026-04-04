@@ -1,7 +1,4 @@
-"""
-StateVector - Pure quantum state representation.
-Implements quantum state as a complex amplitude vector |ψ⟩.
-"""
+"""Pure quantum state representation."""
 
 import numpy as np
 from typing import List, Tuple, Optional, Union, Dict
@@ -37,13 +34,6 @@ class StateVector:
     MAX_QUBITS = 20  # Maximum supported qubits (2^20 = ~1M amplitudes)
 
     def __init__(self, n_qubits: int, initial_state: Optional[np.ndarray] = None):
-        """
-        Initialize a quantum state.
-
-        Args:
-            n_qubits: Number of qubits
-            initial_state: Optional initial amplitudes (defaults to |0...0⟩)
-        """
         if n_qubits < 1:
             raise ValueError("Number of qubits must be at least 1")
         if n_qubits > self.MAX_QUBITS:
@@ -63,15 +53,7 @@ class StateVector:
 
     @classmethod
     def from_label(cls, label: str) -> 'StateVector':
-        """
-        Create a computational basis state from a binary string.
-
-        Args:
-            label: Binary string like '010' or '|010⟩'
-
-        Returns:
-            StateVector initialized to that basis state
-        """
+        """Create a computational basis state from a binary string like '010'."""
         # Remove ket notation if present
         label = label.replace('|', '').replace('⟩', '').replace('>', '')
 
@@ -85,15 +67,7 @@ class StateVector:
 
     @classmethod
     def from_amplitudes(cls, amplitudes: Union[List[complex], np.ndarray]) -> 'StateVector':
-        """
-        Create a state vector from explicit amplitudes.
-
-        Args:
-            amplitudes: List or array of complex amplitudes
-
-        Returns:
-            StateVector with given amplitudes (normalized)
-        """
+        """Create a state vector from explicit amplitudes (normalized)."""
         amplitudes = np.asarray(amplitudes, dtype=complex)
         dim = len(amplitudes)
         n_qubits = int(np.log2(dim))
@@ -105,15 +79,7 @@ class StateVector:
 
     @classmethod
     def bell_state(cls, state_type: str = 'phi+') -> 'StateVector':
-        """
-        Create a Bell state.
-
-        Args:
-            state_type: One of 'phi+', 'phi-', 'psi+', 'psi-'
-
-        Returns:
-            Two-qubit Bell state
-        """
+        """Create a Bell state ('phi+', 'phi-', 'psi+', or 'psi-')."""
         if state_type == 'phi+':
             # |Φ+⟩ = (|00⟩ + |11⟩)/√2
             amps = np.array([1, 0, 0, 1], dtype=complex) / np.sqrt(2)
@@ -133,15 +99,7 @@ class StateVector:
 
     @classmethod
     def ghz_state(cls, n_qubits: int) -> 'StateVector':
-        """
-        Create a GHZ state: (|00...0⟩ + |11...1⟩)/√2
-
-        Args:
-            n_qubits: Number of qubits
-
-        Returns:
-            GHZ state
-        """
+        """Create a GHZ state: (|00...0> + |11...1>)/sqrt(2)."""
         dim = 2 ** n_qubits
         amps = np.zeros(dim, dtype=complex)
         amps[0] = 1 / np.sqrt(2)  # |00...0⟩
@@ -150,15 +108,7 @@ class StateVector:
 
     @classmethod
     def w_state(cls, n_qubits: int) -> 'StateVector':
-        """
-        Create a W state: (|100...0⟩ + |010...0⟩ + ... + |000...1⟩)/√n
-
-        Args:
-            n_qubits: Number of qubits
-
-        Returns:
-            W state
-        """
+        """Create a W state with one excitation equally spread across qubits."""
         dim = 2 ** n_qubits
         amps = np.zeros(dim, dtype=complex)
 
@@ -191,16 +141,7 @@ class StateVector:
         return np.abs(self._amplitudes) ** 2
 
     def apply_gate(self, gate: GateMatrix, qubits: List[int]) -> 'StateVector':
-        """
-        Apply a quantum gate to specified qubits.
-
-        Args:
-            gate: Gate matrix
-            qubits: List of qubit indices (0-indexed)
-
-        Returns:
-            New StateVector after gate application
-        """
+        """Apply a quantum gate to specified qubits, returning a new state."""
         # Validate qubits
         for q in qubits:
             if q < 0 or q >= self._n_qubits:
@@ -218,13 +159,7 @@ class StateVector:
         return StateVector(self._n_qubits, new_amplitudes)
 
     def apply_gate_inplace(self, gate: GateMatrix, qubits: List[int]) -> None:
-        """
-        Apply a quantum gate in place (modifies this state).
-
-        Args:
-            gate: Gate matrix
-            qubits: List of qubit indices
-        """
+        """Apply a quantum gate in place."""
         for q in qubits:
             if q < 0 or q >= self._n_qubits:
                 raise ValueError(f"Qubit index {q} out of range")
@@ -238,16 +173,7 @@ class StateVector:
 
     def measure(self, qubits: Optional[List[int]] = None,
                 collapse: bool = True) -> MeasurementResult:
-        """
-        Perform projective measurement on specified qubits.
-
-        Args:
-            qubits: Qubits to measure (None = measure all)
-            collapse: If True, collapse state; if False, return random outcome only
-
-        Returns:
-            MeasurementResult with outcome and post-measurement state
-        """
+        """Projective measurement on specified qubits (None = all)."""
         if qubits is None:
             qubits = list(range(self._n_qubits))
 
@@ -311,16 +237,7 @@ class StateVector:
         )
 
     def sample(self, shots: int = 1024, qubits: Optional[List[int]] = None) -> Dict[str, int]:
-        """
-        Sample measurement outcomes without state collapse.
-
-        Args:
-            shots: Number of samples
-            qubits: Qubits to measure (None = all)
-
-        Returns:
-            Dictionary mapping outcome strings to counts
-        """
+        """Sample measurement outcomes without state collapse."""
         if qubits is None:
             qubits = list(range(self._n_qubits))
 
@@ -349,16 +266,7 @@ class StateVector:
 
     def expectation(self, observable: np.ndarray,
                     qubits: Optional[List[int]] = None) -> float:
-        """
-        Calculate expectation value ⟨ψ|O|ψ⟩.
-
-        Args:
-            observable: Hermitian operator matrix
-            qubits: Qubits the observable acts on (None = full system)
-
-        Returns:
-            Real expectation value
-        """
+        """Expectation value <psi|O|psi>."""
         if qubits is None:
             op = observable
         else:
@@ -369,54 +277,23 @@ class StateVector:
 
     def variance(self, observable: np.ndarray,
                  qubits: Optional[List[int]] = None) -> float:
-        """
-        Calculate variance ⟨O²⟩ - ⟨O⟩².
-
-        Args:
-            observable: Hermitian operator
-            qubits: Qubits the observable acts on
-
-        Returns:
-            Variance value
-        """
+        """Variance <O^2> - <O>^2."""
         exp_O = self.expectation(observable, qubits)
         exp_O2 = self.expectation(observable @ observable, qubits)
         return exp_O2 - exp_O ** 2
 
     def to_density_matrix(self) -> np.ndarray:
-        """
-        Convert to density matrix representation |ψ⟩⟨ψ|.
-
-        Returns:
-            Density matrix (2^n × 2^n)
-        """
+        """Convert to density matrix |psi><psi|."""
         return outer_product(self._amplitudes, self._amplitudes)
 
     def reduced_density_matrix(self, keep_qubits: List[int]) -> np.ndarray:
-        """
-        Get reduced density matrix by tracing out other qubits.
-
-        Args:
-            keep_qubits: Qubits to keep
-
-        Returns:
-            Reduced density matrix
-        """
+        """Reduced density matrix, tracing out qubits not in keep_qubits."""
         rho = self.to_density_matrix()
         trace_out = [q for q in range(self._n_qubits) if q not in keep_qubits]
         return partial_trace_simple(rho, trace_out, self._n_qubits)
 
     def bloch_vector(self, qubit: int) -> Tuple[float, float, float]:
-        """
-        Get Bloch sphere coordinates for a single qubit.
-        Traces out other qubits first.
-
-        Args:
-            qubit: Qubit index
-
-        Returns:
-            (x, y, z) Bloch vector coordinates
-        """
+        """Bloch sphere (x, y, z) for a single qubit, tracing out others."""
         if self._n_qubits == 1:
             return state_to_bloch(self._amplitudes)
 
@@ -425,57 +302,26 @@ class StateVector:
         return state_to_bloch(rho_q)
 
     def all_bloch_vectors(self) -> List[Tuple[float, float, float]]:
-        """
-        Get Bloch vectors for all qubits.
-
-        Returns:
-            List of (x, y, z) tuples for each qubit
-        """
+        """Bloch vectors for all qubits."""
         return [self.bloch_vector(q) for q in range(self._n_qubits)]
 
     def purity(self) -> float:
-        """
-        Calculate purity Tr(ρ²). For pure states, this equals 1.
-
-        Returns:
-            Purity value (always 1.0 for StateVector)
-        """
+        """Purity Tr(rho^2). Always 1.0 for pure states."""
         return 1.0  # Pure states always have purity 1
 
     def entropy(self, base: float = 2) -> float:
-        """
-        Calculate von Neumann entropy. For pure states, this is 0.
-
-        Returns:
-            Entropy value (always 0.0 for pure states)
-        """
+        """Von Neumann entropy. Always 0.0 for pure states."""
         return 0.0  # Pure states have zero entropy
 
     def fidelity(self, other: 'StateVector') -> float:
-        """
-        Calculate fidelity with another state: |⟨ψ|φ⟩|².
-
-        Args:
-            other: Another StateVector
-
-        Returns:
-            Fidelity value in [0, 1]
-        """
+        """Fidelity |<psi|phi>|^2."""
         if self._n_qubits != other._n_qubits:
             raise ValueError("States must have same number of qubits")
         overlap = np.vdot(self._amplitudes, other._amplitudes)
         return float(np.abs(overlap) ** 2)
 
     def inner_product(self, other: 'StateVector') -> complex:
-        """
-        Calculate inner product ⟨self|other⟩.
-
-        Args:
-            other: Another StateVector
-
-        Returns:
-            Complex inner product
-        """
+        """Inner product <self|other>."""
         return complex(np.vdot(self._amplitudes, other._amplitudes))
 
     def copy(self) -> 'StateVector':
@@ -483,15 +329,7 @@ class StateVector:
         return StateVector(self._n_qubits, self._amplitudes.copy())
 
     def tensor(self, other: 'StateVector') -> 'StateVector':
-        """
-        Compute tensor product |self⟩ ⊗ |other⟩.
-
-        Args:
-            other: Another StateVector
-
-        Returns:
-            Combined state
-        """
+        """Tensor product |self> x |other>."""
         new_amplitudes = tensor_product(self._amplitudes, other._amplitudes)
         return StateVector(self._n_qubits + other._n_qubits, new_amplitudes)
 
@@ -528,7 +366,3 @@ class StateVector:
         """Deserialize from dictionary."""
         amps = np.array(data['amplitudes_real']) + 1j * np.array(data['amplitudes_imag'])
         return cls(data['n_qubits'], amps)
-
-
-# Export
-__all__ = ['StateVector', 'MeasurementResult']

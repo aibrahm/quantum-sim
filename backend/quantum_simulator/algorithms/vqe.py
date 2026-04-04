@@ -1,18 +1,7 @@
 """
-Variational Quantum Eigensolver (VQE) Implementation.
+Variational Quantum Eigensolver (VQE).
 
-VQE is a hybrid quantum-classical algorithm for finding the ground state
-energy of a Hamiltonian. It uses a parameterized quantum circuit (ansatz)
-optimized by a classical optimizer to minimize ⟨ψ(θ)|H|ψ(θ)⟩.
-
-Key components:
-- Ansatz: Parameterized quantum circuit (hardware-efficient or chemistry-inspired)
-- Cost function: Expectation value ⟨H⟩ measured on quantum hardware
-- Classical optimizer: Updates parameters to minimize energy
-
-Reference:
-  Peruzzo et al., "A variational eigenvalue solver on a photonic quantum
-  processor", Nature Communications 5, 4213 (2014), arXiv:1304.3061
+Reference: Peruzzo et al., Nature Communications 5, 4213 (2014), arXiv:1304.3061
 """
 
 import numpy as np
@@ -25,17 +14,9 @@ from ..circuit.executor import get_statevector
 from ..core.state_vector import StateVector
 
 
-# =============================================================================
-# Hamiltonian Representation
-# =============================================================================
-
 @dataclass
 class PauliTerm:
-    """
-    A single term in a Pauli Hamiltonian: coefficient × (σ₁ ⊗ σ₂ ⊗ ... ⊗ σₙ).
-
-    The Hamiltonian is H = Σᵢ cᵢ Pᵢ where Pᵢ are Pauli strings.
-    """
+    """A single term in a Pauli Hamiltonian: coefficient * tensor product of Pauli operators."""
     coefficient: float
     paulis: str  # e.g. "XZIY" means X⊗Z⊗I⊗Y
 
@@ -55,9 +36,7 @@ class PauliTerm:
 
 @dataclass
 class PauliHamiltonian:
-    """
-    Hamiltonian as a sum of Pauli terms: H = Σᵢ cᵢ Pᵢ.
-    """
+    """Hamiltonian as a sum of Pauli terms: H = Σᵢ cᵢ Pᵢ."""
     terms: List[PauliTerm]
     n_qubits: int
 
@@ -77,21 +56,8 @@ class PauliHamiltonian:
 
     @classmethod
     def h2_hamiltonian(cls, bond_length: float = 0.735) -> 'PauliHamiltonian':
-        """
-        Simplified H₂ molecule Hamiltonian in STO-3G basis.
-
-        The hydrogen molecule is the standard benchmark for VQE.
-        Coefficients from Bravyi-Kitaev transformation at given bond length.
-
-        Args:
-            bond_length: H-H distance in Angstroms
-
-        Returns:
-            PauliHamiltonian for H₂
-        """
-        # Coefficients for H₂ at equilibrium geometry (0.735 Å)
-        # Using Bravyi-Kitaev mapping with 2 qubits
-        # These are approximate but physically meaningful coefficients
+        """Simplified H2 molecule Hamiltonian in STO-3G basis."""
+        # Coefficients from Bravyi-Kitaev transformation at given bond length
         g0 = -0.4804 + 0.3435 * (bond_length - 0.735)
         g1 = 0.3435 - 0.0946 * (bond_length - 0.735)
         g2 = -0.4347 + 0.1231 * (bond_length - 0.735)
@@ -111,19 +77,7 @@ class PauliHamiltonian:
 
     @classmethod
     def transverse_ising(cls, n_qubits: int, J: float = 1.0, h: float = 0.5) -> 'PauliHamiltonian':
-        """
-        Transverse-field Ising model: H = -J Σᵢ ZᵢZᵢ₊₁ - h Σᵢ Xᵢ
-
-        A fundamental model in quantum many-body physics and quantum annealing.
-
-        Args:
-            n_qubits: Number of spins
-            J: Coupling strength
-            h: Transverse field strength
-
-        Returns:
-            PauliHamiltonian for the Ising model
-        """
+        """Transverse-field Ising model: H = -J Σᵢ ZᵢZᵢ₊₁ - h Σᵢ Xᵢ."""
         terms = []
 
         # ZZ interactions
@@ -142,32 +96,13 @@ class PauliHamiltonian:
         return cls(terms=terms, n_qubits=n_qubits)
 
 
-# =============================================================================
-# Ansatz Circuits
-# =============================================================================
-
 def hardware_efficient_ansatz(
     n_qubits: int,
     depth: int = 2,
     params: Optional[List[float]] = None
 ) -> Tuple[QuantumCircuit, int]:
-    """
-    Hardware-efficient ansatz with alternating Ry/Rz layers and CX entanglement.
-
-    Structure per layer:
-    1. Ry(θ) on each qubit
-    2. Rz(θ) on each qubit
-    3. Linear chain of CX gates
-
-    Args:
-        n_qubits: Number of qubits
-        depth: Number of ansatz layers
-        params: Circuit parameters (auto-initialized if None)
-
-    Returns:
-        Tuple of (circuit, number of parameters)
-    """
-    n_params = 2 * n_qubits * depth + 2 * n_qubits  # Ry + Rz per qubit per layer, plus final layer
+    """Hardware-efficient ansatz with Ry/Rz layers and CX entanglement."""
+    n_params = 2 * n_qubits * depth + 2 * n_qubits
     if params is None:
         params = [0.0] * n_params
 
@@ -175,21 +110,17 @@ def hardware_efficient_ansatz(
     param_idx = 0
 
     for layer in range(depth):
-        # Ry rotation layer
         for q in range(n_qubits):
             qc.ry(params[param_idx], q)
             param_idx += 1
 
-        # Rz rotation layer
         for q in range(n_qubits):
             qc.rz(params[param_idx], q)
             param_idx += 1
 
-        # Entangling layer (linear connectivity)
         for q in range(n_qubits - 1):
             qc.cx(q, q + 1)
 
-    # Final rotation layer
     for q in range(n_qubits):
         qc.ry(params[param_idx], q)
         param_idx += 1
@@ -205,42 +136,22 @@ def uccsd_ansatz(
     n_electrons: int = 2,
     params: Optional[List[float]] = None
 ) -> Tuple[QuantumCircuit, int]:
-    """
-    Unitary Coupled Cluster Singles and Doubles (UCCSD) ansatz.
-
-    Chemistry-inspired ansatz that respects particle number conservation.
-    Generates excitations from occupied to virtual orbitals.
-
-    For 2-qubit H₂, this reduces to a single Ry rotation.
-
-    Args:
-        n_qubits: Number of qubits (= number of spin-orbitals)
-        n_electrons: Number of electrons
-        params: Circuit parameters
-
-    Returns:
-        Tuple of (circuit, number of parameters)
-    """
+    """UCCSD ansatz. For 2-qubit H2, reduces to a single Ry rotation."""
     if n_qubits == 2:
-        # Simplified UCCSD for H₂ (2 qubits, 2 electrons)
         n_params = 1
         if params is None:
             params = [0.0]
 
         qc = QuantumCircuit(2, name="uccsd_h2")
-        # Hartree-Fock initial state: |01⟩
         qc.x(0)
-        # Single excitation: parameterized rotation
         qc.ry(params[0], 1)
         qc.cx(1, 0)
 
         return qc, n_params
 
-    # General UCCSD
     n_occupied = n_electrons
     n_virtual = n_qubits - n_electrons
 
-    # Count parameters: singles + doubles
     n_singles = n_occupied * n_virtual
     n_doubles = n_singles * (n_singles - 1) // 2
     n_params = n_singles + n_doubles
@@ -250,25 +161,21 @@ def uccsd_ansatz(
 
     qc = QuantumCircuit(n_qubits, name="uccsd")
 
-    # Hartree-Fock initial state
     for i in range(n_electrons):
         qc.x(i)
 
     param_idx = 0
 
-    # Single excitations
     for i in range(n_occupied):
         for a in range(n_occupied, n_qubits):
             theta = params[param_idx]
             param_idx += 1
 
-            # Implement single excitation as Givens rotation
             qc.ry(theta / 2, a)
             qc.cx(a, i)
             qc.ry(-theta / 2, a)
             qc.cx(a, i)
 
-    # Double excitations (simplified)
     for i in range(n_occupied):
         for j in range(i + 1, n_occupied):
             for a in range(n_occupied, n_qubits):
@@ -278,7 +185,6 @@ def uccsd_ansatz(
                     theta = params[param_idx]
                     param_idx += 1
 
-                    # Simplified double excitation circuit
                     qc.cx(i, a)
                     qc.cx(j, b)
                     qc.ry(theta, a)
@@ -290,10 +196,6 @@ def uccsd_ansatz(
 
     return qc, n_params
 
-
-# =============================================================================
-# VQE Core
-# =============================================================================
 
 @dataclass
 class VQEResult:
@@ -312,20 +214,7 @@ def measure_expectation(
     hamiltonian: PauliHamiltonian,
     circuit: QuantumCircuit
 ) -> float:
-    """
-    Measure ⟨ψ|H|ψ⟩ for a Pauli Hamiltonian.
-
-    In a real quantum computer, each Pauli term requires separate
-    measurement in the appropriate basis. Here we compute it
-    from the full state vector for simulation.
-
-    Args:
-        hamiltonian: Pauli Hamiltonian
-        circuit: Parameterized circuit preparing |ψ(θ)⟩
-
-    Returns:
-        Expectation value ⟨H⟩
-    """
+    """Measure <psi|H|psi> for a Pauli Hamiltonian."""
     sv = get_statevector(circuit)
     psi = sv.amplitudes
 
@@ -344,31 +233,10 @@ def run_vqe(
     max_iterations: int = 200,
     tol: float = 1e-6
 ) -> VQEResult:
-    """
-    Run the Variational Quantum Eigensolver.
-
-    The VQE loop:
-    1. Prepare |ψ(θ)⟩ using the ansatz circuit with current parameters θ
-    2. Measure ⟨ψ(θ)|H|ψ(θ)⟩ (energy expectation)
-    3. Use classical optimizer to update θ to minimize energy
-    4. Repeat until convergence
-
-    Args:
-        hamiltonian: Target Hamiltonian
-        ansatz_type: "hardware_efficient" or "uccsd"
-        ansatz_depth: Depth of hardware-efficient ansatz
-        initial_params: Starting parameters (random if None)
-        optimizer: Scipy optimizer name
-        max_iterations: Maximum optimization iterations
-        tol: Convergence tolerance
-
-    Returns:
-        VQEResult with ground state energy and optimization history
-    """
+    """Run VQE to find the ground state energy of a Hamiltonian."""
     n_qubits = hamiltonian.n_qubits
     convergence_history = []
 
-    # Determine ansatz and parameter count
     if ansatz_type == "uccsd":
         _, n_params = uccsd_ansatz(n_qubits)
     else:
@@ -379,7 +247,6 @@ def run_vqe(
         initial_params = np.random.uniform(-np.pi, np.pi, n_params).tolist()
 
     def cost_function(params):
-        """VQE cost function: build circuit, measure energy."""
         if ansatz_type == "uccsd":
             circuit, _ = uccsd_ansatz(n_qubits, params=params.tolist())
         else:
@@ -389,7 +256,6 @@ def run_vqe(
         convergence_history.append(energy)
         return energy
 
-    # Run classical optimization
     result = minimize(
         cost_function,
         np.array(initial_params),
@@ -419,29 +285,6 @@ def run_h2_vqe(
     ansatz_type: str = "uccsd",
     max_iterations: int = 200
 ) -> VQEResult:
-    """
-    Run VQE for the H₂ molecule — the canonical VQE benchmark.
-
-    Args:
-        bond_length: H-H bond length in Angstroms
-        ansatz_type: Ansatz to use
-        max_iterations: Max optimizer iterations
-
-    Returns:
-        VQEResult for H₂
-    """
+    """Run VQE for H2 molecule."""
     H = PauliHamiltonian.h2_hamiltonian(bond_length)
     return run_vqe(H, ansatz_type=ansatz_type, max_iterations=max_iterations)
-
-
-# Export
-__all__ = [
-    'PauliTerm',
-    'PauliHamiltonian',
-    'hardware_efficient_ansatz',
-    'uccsd_ansatz',
-    'measure_expectation',
-    'run_vqe',
-    'run_h2_vqe',
-    'VQEResult',
-]
