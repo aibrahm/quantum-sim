@@ -144,15 +144,18 @@ class Executor:
                          qubits: List[int], params: List[float],
                          measurement_outcome: Optional[int] = None) -> StateSnapshot:
         """Create a state snapshot."""
+        # Bloch vectors need a per-qubit partial trace (O(4^n)); only pay for it
+        # when snapshots are actually being recorded for visualization.
+        want_bloch = self._record_snapshots
         if isinstance(self._state, StateVector):
             probs = self._state.probabilities
-            bloch = self._state.all_bloch_vectors()
+            bloch = self._state.all_bloch_vectors() if want_bloch else []
             amps = self._state.amplitudes
             rho = None
         else:
             rho_matrix = self._state.rho
             probs = np.real(np.diag(rho_matrix))
-            bloch = self._state.all_bloch_vectors()
+            bloch = self._state.all_bloch_vectors() if want_bloch else []
             amps = None
             rho = rho_matrix
 
@@ -221,13 +224,7 @@ class Executor:
         """Apply a gate operation to the state."""
         gate_matrix = get_gate(gate_op.gate_name, gate_op.params if gate_op.params else None)
 
-        # Use execution_qubits for proper controlled gate handling
-        exec_qubits = gate_op.execution_qubits
-
-        if isinstance(self._state, StateVector):
-            self._state = self._state.apply_gate(gate_matrix, exec_qubits)
-        else:
-            self._state = self._state.apply_gate(gate_matrix, exec_qubits)
+        self._state = self._state.apply_gate(gate_matrix, gate_op.qubits)
 
         # Apply noise if present
         if self._noise_model:
@@ -309,6 +306,61 @@ class Executor:
             if self.step() is None:
                 break
 
+    def _terminal_measurement_ops(self) -> Optional[List]:
+        """Return the measurement ops if the circuit is unitary-then-measure.
+
+        Eligible when every measurement sits after all gates and there are no
+        resets (mid-circuit measurement/reset needs true per-shot handling).
+        Returns None otherwise.
+        """
+        ops = self._circuit.operations
+        measures = []
+        seen_measure = False
+        for op in ops:
+            if op.op_type == OperationType.MEASUREMENT:
+                seen_measure = True
+                measures.append(op)
+            elif op.op_type == OperationType.RESET:
+                return None
+            elif op.op_type == OperationType.GATE and seen_measure:
+                # A gate after a measurement means feed-forward / mid-circuit logic.
+                return None
+        return measures if measures else None
+
+    def _sample_terminal(self, measures: List, shots: int) -> Dict[str, int]:
+        """Draw all shots at once from the final state's measurement distribution."""
+        amps = self._state.amplitudes
+
+        measured_qubits: List[int] = []
+        measured_cbits: List[int] = []
+        for op in measures:
+            measured_qubits.extend(op.operation.qubits)
+            measured_cbits.extend(op.operation.classical_bits)
+
+        n_measured = len(measured_qubits)
+        basis = np.arange(len(amps))
+        outcome = np.zeros(len(amps), dtype=np.int64)
+        for k, q in enumerate(measured_qubits):
+            outcome |= ((basis >> q) & 1) << k
+
+        probs = np.zeros(2 ** n_measured)
+        np.add.at(probs, outcome, np.abs(amps) ** 2)
+        probs = np.maximum(probs, 0)
+        probs /= probs.sum()
+
+        draws = np.random.choice(2 ** n_measured, size=shots, p=probs)
+        values, freqs = np.unique(draws, return_counts=True)
+
+        counts: Dict[str, int] = {}
+        for value, freq in zip(values, freqs):
+            cbits = [0] * self._circuit.n_classical
+            for k, cbit in enumerate(measured_cbits):
+                cbits[cbit] = int((value >> k) & 1)
+            key = ''.join(str(b) for b in reversed(cbits))
+            counts[key] = counts.get(key, 0) + int(freq)
+
+        return counts
+
     def run(self, shots: int = 1024) -> ExecutionResult:
         """
         Execute circuit and sample measurements.
@@ -327,6 +379,35 @@ class Executor:
             op.op_type == OperationType.MEASUREMENT
             for op in self._circuit.operations
         )
+
+        terminal_measures = self._terminal_measurement_ops()
+        if (terminal_measures is not None
+                and self._mode == ExecutionMode.STATEVECTOR
+                and self._noise_model is None):
+            # Fast path: simulate the unitary part once, then draw every shot from
+            # the final distribution instead of re-running the circuit per shot.
+            state = StateVector(self._circuit.n_qubits)
+            for op in self._circuit.operations:
+                if op.op_type == OperationType.GATE:
+                    gate_matrix = get_gate(
+                        op.operation.gate_name,
+                        op.operation.params if op.operation.params else None
+                    )
+                    state = state.apply_gate(gate_matrix, op.operation.qubits)
+                elif op.op_type == OperationType.BARRIER:
+                    continue
+                else:
+                    break
+            self._state = state
+            counts = self._sample_terminal(terminal_measures, shots)
+            end_time = time.time()
+            return ExecutionResult(
+                counts=counts,
+                shots=shots,
+                final_state=None,
+                snapshots=[],
+                execution_time_ms=(end_time - start_time) * 1000
+            )
 
         if has_measurement:
             # Run multiple shots with measurements

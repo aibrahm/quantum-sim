@@ -26,17 +26,6 @@ class GateOperation:
     params: List[float] = field(default_factory=list)
     controls: List[int] = field(default_factory=list)
     label: Optional[str] = None
-    _internal_qubits: List[int] = None  # Internal qubit order for execution
-
-    def __post_init__(self):
-        # Default _internal_qubits to qubits if not set
-        if self._internal_qubits is None:
-            self._internal_qubits = self.qubits
-
-    @property
-    def execution_qubits(self) -> List[int]:
-        """Get qubit ordering for gate execution (handles controlled gate conventions)."""
-        return self._internal_qubits if self._internal_qubits else self.qubits
 
     def to_dict(self) -> dict:
         return {
@@ -147,29 +136,12 @@ class QuantumCircuit:
         if controls:
             self._validate_qubits(*controls)
 
-        # Reorder qubits for controlled gates to match matrix convention
-        # Gate matrices have control at MSB positions, target at LSB positions
-        internal_qubits = qubits
-        if name in ('CX', 'CNOT', 'CY', 'CZ', 'CRx', 'CRy', 'CRz', 'CPhase', 'CU'):
-            # Two-qubit controlled gates: [control, target] -> [target, control]
-            if len(qubits) == 2:
-                internal_qubits = [qubits[1], qubits[0]]
-        elif name in ('CCX', 'CCNOT', 'Toffoli'):
-            # Toffoli: [control1, control2, target] -> [target, control2, control1]
-            if len(qubits) == 3:
-                internal_qubits = [qubits[2], qubits[1], qubits[0]]
-        elif name in ('CSWAP', 'Fredkin'):
-            # Fredkin: [control, target1, target2] -> [target2, target1, control]
-            if len(qubits) == 3:
-                internal_qubits = [qubits[2], qubits[1], qubits[0]]
-
         gate_op = GateOperation(
             gate_name=name,
-            qubits=qubits,  # Store original order for display
+            qubits=qubits,
             params=params or [],
             controls=controls or [],
             label=label,
-            _internal_qubits=internal_qubits  # Internal order for execution
         )
         self._operations.append(CircuitOperation(
             op_type=OperationType.GATE,

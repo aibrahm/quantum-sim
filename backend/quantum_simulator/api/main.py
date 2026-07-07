@@ -63,10 +63,18 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS middleware
+# CORS: allow the local Vite dev server (and its common ports). Widen this list
+# (or drive it from an env var) when deploying behind a known frontend origin.
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -780,6 +788,8 @@ async def websocket_execute(websocket: WebSocket, circuit_id: str):
                         "operation": snapshot.operation_name,
                         "qubits": snapshot.qubits,
                         "probabilities": snapshot.probabilities.tolist(),
+                        "amplitudes_real": snapshot.amplitudes.real.tolist() if snapshot.amplitudes is not None else None,
+                        "amplitudes_imag": snapshot.amplitudes.imag.tolist() if snapshot.amplitudes is not None else None,
                         "bloch_vectors": bloch_vecs
                     })
                 else:
@@ -803,6 +813,8 @@ async def websocket_execute(websocket: WebSocket, circuit_id: str):
                         "operation": snapshot.operation_name,
                         "qubits": snapshot.qubits,
                         "probabilities": snapshot.probabilities.tolist(),
+                        "amplitudes_real": snapshot.amplitudes.real.tolist() if snapshot.amplitudes is not None else None,
+                        "amplitudes_imag": snapshot.amplitudes.imag.tolist() if snapshot.amplitudes is not None else None,
                         "bloch_vectors": bloch_vecs
                     })
                 await websocket.send_json({

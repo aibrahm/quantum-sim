@@ -363,7 +363,12 @@ def tensor_gate(gate: GateMatrix, qubit: int, n_qubits: int) -> GateMatrix:
 
 
 def multi_qubit_gate(gate: GateMatrix, qubits: List[int], n_qubits: int) -> GateMatrix:
-    """Expand a multi-qubit gate to act on specific qubits in an n-qubit system."""
+    """Expand a multi-qubit gate to act on specific qubits in an n-qubit system.
+
+    Convention: qubits[0] is the most-significant bit of the gate index, so a
+    two-qubit controlled gate applied to [control, target] matches its textbook
+    matrix. The state uses little-endian order (qubit q -> bit (i >> q) & 1).
+    """
     n_gate_qubits = len(qubits)
     gate_dim = 2 ** n_gate_qubits
     total_dim = 2 ** n_qubits
@@ -371,27 +376,19 @@ def multi_qubit_gate(gate: GateMatrix, qubits: List[int], n_qubits: int) -> Gate
     if gate.shape != (gate_dim, gate_dim):
         raise ValueError(f"Gate shape {gate.shape} doesn't match {n_gate_qubits} qubits")
 
-    if n_gate_qubits == n_qubits and qubits == list(range(n_qubits)):
-        return gate
-
-    # Build permutation to move target qubits to rightmost positions
     other_qubits = [q for q in range(n_qubits) if q not in qubits]
-    perm = other_qubits + list(qubits)
 
-    # Create the full gate matrix using permutation
     result = np.zeros((total_dim, total_dim), dtype=complex)
 
     for i in range(total_dim):
         for j in range(total_dim):
-            # Get bit values for original indices
             i_bits = [(i >> q) & 1 for q in range(n_qubits)]
             j_bits = [(j >> q) & 1 for q in range(n_qubits)]
 
-            # Extract bits for gate qubits
-            i_gate = sum((i_bits[qubits[k]] << k) for k in range(n_gate_qubits))
-            j_gate = sum((j_bits[qubits[k]] << k) for k in range(n_gate_qubits))
+            # qubits[0] is the highest gate-index bit
+            i_gate = sum(i_bits[qubits[k]] << (n_gate_qubits - 1 - k) for k in range(n_gate_qubits))
+            j_gate = sum(j_bits[qubits[k]] << (n_gate_qubits - 1 - k) for k in range(n_gate_qubits))
 
-            # Check if non-gate qubits match (identity on those)
             i_other = [i_bits[q] for q in other_qubits]
             j_other = [j_bits[q] for q in other_qubits]
 
@@ -399,6 +396,39 @@ def multi_qubit_gate(gate: GateMatrix, qubits: List[int], n_qubits: int) -> Gate
                 result[i, j] = gate[i_gate, j_gate]
 
     return result
+
+
+def apply_gate_to_statevector(amplitudes: np.ndarray, gate: GateMatrix,
+                              qubits: List[int], n_qubits: int) -> np.ndarray:
+    """Apply a gate to a state vector by tensor contraction.
+
+    Reshapes the 2^n amplitude vector into an n-dimensional tensor and contracts
+    only the gate's axes, which is O(2^n * 2^m) for an m-qubit gate rather than
+    the O(4^n) of building a full 2^n x 2^n matrix. Uses the same convention as
+    multi_qubit_gate: qubits[0] is the most-significant gate-index bit and the
+    state is little-endian (state axis for qubit q is n_qubits - 1 - q).
+    """
+    m = len(qubits)
+    psi = amplitudes.reshape([2] * n_qubits)
+    g = gate.reshape([2] * (2 * m))
+
+    state_axes = [n_qubits - 1 - q for q in qubits]
+    # Contract the gate's input axes (m..2m-1) with the corresponding state axes.
+    psi = np.tensordot(g, psi, axes=(list(range(m, 2 * m)), state_axes))
+
+    # tensordot leaves the gate's output axes (one per qubit, in order) first,
+    # followed by the untouched state axes in ascending order. Move each output
+    # axis back to the state position of its qubit.
+    remaining = [a for a in range(n_qubits) if a not in state_axes]
+    source = {}
+    for k, a in enumerate(state_axes):
+        source[a] = k
+    for idx, a in enumerate(remaining):
+        source[a] = m + idx
+    perm = [source[a] for a in range(n_qubits)]
+
+    psi = np.transpose(psi, perm)
+    return psi.reshape(-1)
 
 
 def is_unitary(gate: GateMatrix, tol: float = 1e-10) -> bool:

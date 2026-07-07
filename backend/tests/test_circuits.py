@@ -155,9 +155,9 @@ class TestExecutor:
 
         snap1 = executor.step()
         assert snap1.operation_name == 'H'
-        # After H on q0: (|00⟩ + |10⟩)/√2
+        # After H on q0 (little-endian, q0 is the LSB): (|00⟩ + |01⟩)/√2
         assert np.isclose(snap1.probabilities[0], 0.5)
-        assert np.isclose(snap1.probabilities[2], 0.5)
+        assert np.isclose(snap1.probabilities[1], 0.5)
 
         snap2 = executor.step()
         assert snap2.operation_name == 'CX'
@@ -226,8 +226,10 @@ class TestSpecificCircuits:
             qc.cx(0, 1).h(0).measure_all()
 
             result = run_circuit(qc, shots=100)
-            # Should deterministically recover message
-            assert result.counts.get(msg, 0) == 100
+            # Deterministic recovery. Alice's Z bit (msg[0]) lands on q0 and her
+            # X bit (msg[1]) on q1; counts strings are little-endian (q0 rightmost),
+            # so the recovered key is msg reversed.
+            assert result.counts.get(msg[::-1], 0) == 100
 
 
 class TestExecutionResult:

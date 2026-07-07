@@ -4,7 +4,7 @@ import numpy as np
 from typing import List, Tuple, Optional, Union, Dict
 from dataclasses import dataclass
 
-from .gates import GateMatrix, multi_qubit_gate, tensor_gate, I
+from .gates import GateMatrix, multi_qubit_gate, tensor_gate, apply_gate_to_statevector, I
 from .utils import (
     tensor_product, partial_trace_simple, state_to_bloch,
     normalize_state, computational_basis, projector, outer_product
@@ -147,14 +147,9 @@ class StateVector:
             if q < 0 or q >= self._n_qubits:
                 raise ValueError(f"Qubit index {q} out of range [0, {self._n_qubits})")
 
-        # Get full gate matrix
-        if len(qubits) == 1:
-            full_gate = tensor_gate(gate, qubits[0], self._n_qubits)
-        else:
-            full_gate = multi_qubit_gate(gate, qubits, self._n_qubits)
-
-        # Apply gate
-        new_amplitudes = full_gate @ self._amplitudes
+        new_amplitudes = apply_gate_to_statevector(
+            self._amplitudes, gate, qubits, self._n_qubits
+        )
 
         return StateVector(self._n_qubits, new_amplitudes)
 
@@ -164,12 +159,9 @@ class StateVector:
             if q < 0 or q >= self._n_qubits:
                 raise ValueError(f"Qubit index {q} out of range")
 
-        if len(qubits) == 1:
-            full_gate = tensor_gate(gate, qubits[0], self._n_qubits)
-        else:
-            full_gate = multi_qubit_gate(gate, qubits, self._n_qubits)
-
-        self._amplitudes = full_gate @ self._amplitudes
+        self._amplitudes = apply_gate_to_statevector(
+            self._amplitudes, gate, qubits, self._n_qubits
+        )
 
     def measure(self, qubits: Optional[List[int]] = None,
                 collapse: bool = True) -> MeasurementResult:
