@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { GATE_CATEGORIES, GATE_INFO, type GateName } from '../../types';
+import { GATE_CATEGORIES, GATE_FAMILIES, GATE_INFO, type GateName } from '../../types';
 import { useCircuitStore, type QubitInitState } from '../../stores/circuitStore';
 
 const INIT_STATES: { value: QubitInitState; label: string }[] = [
@@ -70,21 +70,23 @@ export function GatePalette() {
   return (
     <div className="p-3 text-xs">
       {/* Qubit count control */}
-      <div className="mb-4 panel p-2">
-        <div className="text-gray-400 uppercase text-[10px] tracking-wider mb-2 font-bold">QUBITS</div>
+      <div className="mb-3">
+        <div className="field-label mb-2">Qubits</div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setNQubits(Math.max(1, nQubits - 1))}
             disabled={nQubits <= 1}
-            className="w-8 h-8 border border-qborder hover:border-accent hover:bg-blue-50 text-accent disabled:border-gray-200 disabled:text-gray-300 font-bold rounded-md transition-all"
+            className="btn-secondary w-8 h-8 text-sm"
           >
-            -
+            −
           </button>
-          <span className="w-8 text-center text-lg font-bold text-gray-800">{nQubits}</span>
+          <span className="panel flex-1 h-8 flex items-center justify-center text-sm font-mono tabular-nums">
+            {nQubits}
+          </span>
           <button
             onClick={() => setNQubits(Math.min(10, nQubits + 1))}
             disabled={nQubits >= 10}
-            className="w-8 h-8 border border-qborder hover:border-accent hover:bg-blue-50 text-accent disabled:border-gray-200 disabled:text-gray-300 font-bold rounded-md transition-all"
+            className="btn-secondary w-8 h-8 text-sm"
           >
             +
           </button>
@@ -92,21 +94,21 @@ export function GatePalette() {
       </div>
 
       {/* Initial states */}
-      <div className="mb-4 panel p-2">
-        <div className="text-gray-400 uppercase text-[10px] tracking-wider mb-2 font-bold">INIT STATE</div>
+      <div className="mb-3">
+        <div className="field-label mb-2">Initial state</div>
         <div className="space-y-1">
           {Array.from({ length: nQubits }, (_, i) => (
             <div key={i} className="flex items-center gap-2">
-              <span className="text-gray-500 w-8">q{i}</span>
-              <div className="flex gap-1 flex-1">
+              <span className="text-gray-70 w-7 font-mono tabular-nums">q{i}</span>
+              <div className="flex flex-1 border border-line rounded-[2px] overflow-hidden">
                 {INIT_STATES.map(({ value, label }) => (
                   <button
                     key={value}
                     onClick={() => setInitialState(i, value)}
-                    className={`flex-1 py-1 border font-bold ${
+                    className={`flex-1 py-1 text-[11px] font-mono transition-colors duration-[70ms] ${
                       initialStates[i] === value
-                        ? 'border-accent bg-accent text-white'
-                        : 'border-qborder hover:border-accent/50 hover:bg-blue-50'
+                        ? 'bg-blue-10 text-blue-60 font-medium'
+                        : 'bg-white text-gray-70 hover:bg-gray-10'
                     }`}
                   >
                     {label}
@@ -119,26 +121,26 @@ export function GatePalette() {
       </div>
 
       {/* Drag hint */}
-      <div className="mb-2 text-gray-400 text-[10px] uppercase font-bold tracking-wider">
-        DRAG GATES TO CIRCUIT
-      </div>
+      <div className="text-[11px] text-gray-50 mb-2">Drag gates to the circuit</div>
 
       {/* Gate categories */}
-      <div className="space-y-1">
+      <div className="space-y-2">
         {Object.entries(GATE_CATEGORIES).map(([key, category]) => (
           <div key={key} className="panel overflow-hidden">
             <button
               onClick={() => toggleCategory(key)}
-              className="w-full flex items-center justify-between px-2 py-1.5 text-left hover:bg-surface-2 transition-colors"
+              className="w-full flex items-center justify-between px-2 py-1.5 text-left hover:bg-gray-10 transition-colors duration-[70ms]"
             >
-              <span className="uppercase font-bold text-[10px] tracking-wider text-gray-300">{category.name}</span>
-              <span>{expandedCategories.has(key) ? '−' : '+'}</span>
+              <span className="field-label">{category.name}</span>
+              <span className="text-gray-50">{expandedCategories.has(key) ? '−' : '+'}</span>
             </button>
 
             {expandedCategories.has(key) && (
-              <div className="p-2 grid grid-cols-4 gap-1 border-t border-qborder">
+              <div className="p-2 grid grid-cols-4 gap-1 border-t border-line">
                 {category.gates.map((gate) => {
                   const info = GATE_INFO[gate];
+                  const fam = GATE_FAMILIES[info.family];
+                  const isSelected = selectedGate === gate;
                   return (
                     <button
                       key={gate}
@@ -146,11 +148,13 @@ export function GatePalette() {
                       onDragStart={(e) => handleDragStart(e, gate)}
                       onClick={() => handleGateClick(gate)}
                       title={`${info.description} (drag to circuit)`}
-                      className={`gate-btn aspect-square flex items-center justify-center text-[10px] font-bold border rounded cursor-grab active:cursor-grabbing ${
-                        selectedGate === gate
-                          ? 'active'
-                          : ''
-                      }`}
+                      className="aspect-square flex items-center justify-center text-[11px] font-mono font-medium rounded-[2px] cursor-grab active:cursor-grabbing transition-[filter] duration-[70ms] hover:brightness-95"
+                      style={{
+                        background: fam.fill,
+                        color: fam.text,
+                        outline: isSelected ? '2px solid #0f62fe' : 'none',
+                        outlineOffset: 1,
+                      }}
                     >
                       {info.symbol}
                     </button>
@@ -162,11 +166,29 @@ export function GatePalette() {
         ))}
       </div>
 
+      {/* Family legend */}
+      <div className="mt-3">
+        <div className="field-label mb-1.5">Gate families</div>
+        <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+          {Object.entries(GATE_FAMILIES).map(([key, fam]) => (
+            <div key={key} className="flex items-center gap-1.5">
+              <span
+                className="w-2.5 h-2.5 rounded-[1px] shrink-0"
+                style={{ background: fam.fill }}
+              />
+              <span className="text-[11px] text-gray-70">{fam.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Selected gate configuration */}
       {selectedGate && (
-        <div className="mt-3 p-2 panel border-accent/50 glow-accent">
-          <div className="font-bold uppercase mb-1">{GATE_INFO[selectedGate].displayName}</div>
-          <div className="text-gray-500 mb-2">
+        <div className="mt-3 p-2 panel">
+          <div className="text-[13px] font-semibold mb-1">
+            {GATE_INFO[selectedGate].displayName}
+          </div>
+          <div className="text-gray-50 mb-2 text-[11px]">
             {GATE_INFO[selectedGate].description}
           </div>
 
@@ -174,10 +196,10 @@ export function GatePalette() {
           <div className="space-y-1 mb-2">
             {targetQubits.map((q, idx) => (
               <div key={idx} className="flex items-center gap-2">
-                <span className="text-gray-500 w-12 uppercase">
+                <span className="field-label w-12">
                   {GATE_INFO[selectedGate].numQubits === 2 && idx === 0
-                    ? 'CTRL'
-                    : `Q${idx}`}
+                    ? 'Control'
+                    : `q${idx}`}
                 </span>
                 <select
                   value={q}
@@ -186,7 +208,7 @@ export function GatePalette() {
                     next[idx] = parseInt(e.target.value);
                     setTargetQubits(next);
                   }}
-                  className="flex-1 bg-black border border-gray-600 px-1 py-0.5"
+                  className="flex-1 px-1 py-0.5"
                 >
                   {Array.from({ length: nQubits }, (_, i) => (
                     <option key={i} value={i}>
@@ -203,7 +225,7 @@ export function GatePalette() {
             <div className="space-y-1 mb-2">
               {params.map((p, idx) => (
                 <div key={idx} className="flex items-center gap-2">
-                  <span className="text-gray-500 w-12">
+                  <span className="text-gray-70 w-12">
                     {GATE_INFO[selectedGate].paramNames?.[idx] || `θ${idx + 1}`}
                   </span>
                   <input
@@ -219,7 +241,7 @@ export function GatePalette() {
                     }}
                     className="flex-1"
                   />
-                  <span className="text-gray-400 w-10 text-right">
+                  <span className="w-10 text-right font-mono tabular-nums">
                     {(p / Math.PI).toFixed(2)}π
                   </span>
                 </div>
@@ -229,9 +251,9 @@ export function GatePalette() {
 
           <button
             onClick={handleAddGate}
-            className="w-full py-1 btn-accent rounded text-[10px]"
+            className="btn-primary w-full py-1.5"
           >
-            ADD
+            Add
           </button>
         </div>
       )}
@@ -240,15 +262,15 @@ export function GatePalette() {
       <div className="mt-3 space-y-1">
         <button
           onClick={handleAddMeasurement}
-          className="w-full py-1 border border-qborder hover:border-accent/50 hover:text-accent font-bold uppercase rounded transition-colors text-[10px] tracking-wider"
+          className="btn-secondary w-full py-1.5"
         >
-          MEASURE ALL
+          Measure all
         </button>
         <button
           onClick={() => addBarrier(Array.from({ length: nQubits }, (_, i) => i))}
-          className="w-full py-1 border border-qborder hover:border-accent/50 hover:text-accent font-bold uppercase rounded transition-colors text-[10px] tracking-wider"
+          className="btn-secondary w-full py-1.5"
         >
-          BARRIER
+          Barrier
         </button>
       </div>
     </div>

@@ -1,16 +1,39 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { CircuitBuilder } from './components/CircuitBuilder/CircuitBuilder';
 import { GatePalette } from './components/CircuitBuilder/GatePalette';
 import { BlochSphere } from './components/Visualizations/BlochSphere';
 import { Histogram } from './components/Visualizations/Histogram';
 import { StateVector } from './components/Visualizations/StateVector';
 import { ControlPanel } from './components/ControlPanel';
+import { StepControl } from './components/StepControl';
 import { AlgorithmsPanel } from './components/Algorithms';
 import { ResearchPanel } from './components/Research';
 import { ToolsPanel } from './components/Tools';
 import { useCircuitStore } from './stores/circuitStore';
+import { healthCheck } from './api/client';
 
 type RightPanelMode = 'visualize' | 'algorithms' | 'research' | 'tools';
+
+function BackendStatus() {
+  const { status } = useQuery({
+    queryKey: ['health'],
+    queryFn: healthCheck,
+    refetchInterval: 15000,
+    retry: false,
+  });
+
+  const state = status === 'success' ? 'ok' : status === 'error' ? 'err' : 'wait';
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className={`status-dot ${state}`} />
+      <span className="text-xs text-gray-70">
+        {state === 'ok' ? 'Connected' : state === 'err' ? 'Offline' : 'Connecting'}
+      </span>
+    </div>
+  );
+}
 
 function App() {
   const [rightPanelMode, setRightPanelMode] = useState<RightPanelMode>('visualize');
@@ -18,67 +41,73 @@ function App() {
   const { nQubits, result } = useCircuitStore();
 
   return (
-    <div className="min-h-screen bg-surface-2 text-gray-800 font-mono">
-      {/* Accent stripe */}
-      <div className="header-line" />
+    <div className="min-h-screen font-sans text-gray-100">
+      {/* Top bar */}
+      <header className="bg-white px-4 h-12 border-b border-line flex items-center justify-between">
+        <div className="flex items-baseline gap-3">
+          <h1 className="font-semibold text-sm leading-none">
+            Quantum Circuit Simulator
+          </h1>
+          <span className="text-xs text-gray-50 font-mono tabular-nums">
+            {nQubits} qubit{nQubits === 1 ? '' : 's'}
+          </span>
+        </div>
 
-      {/* Header */}
-      <header className="bg-white px-5 py-3 border-b border-qborder shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-base font-bold uppercase tracking-widest text-gray-900">
-              <span className="text-accent">Q</span>UANTUM{' '}
-              <span className="text-accent">C</span>IRCUIT{' '}
-              <span className="text-accent">S</span>IMULATOR
-            </h1>
-            <span className="text-[10px] text-accent bg-blue-50 border border-accent/30 px-2 py-0.5 rounded-full font-bold">
-              {nQubits} QUBIT{nQubits > 1 ? 'S' : ''}
-            </span>
-          </div>
-          <div className="flex gap-1">
+        <div className="flex items-center gap-6">
+          {/* Mode tabs — Carbon text tabs, 2px blue underline */}
+          <nav className="flex h-12">
             {([
-              { id: 'visualize', label: 'VIS' },
-              { id: 'algorithms', label: 'ALGO' },
+              { id: 'visualize', label: 'Visualize' },
+              { id: 'algorithms', label: 'Algorithms' },
               { id: 'research', label: 'QSVT' },
-              { id: 'tools', label: 'TOOLS' },
+              { id: 'tools', label: 'Tools' },
             ] as const).map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setRightPanelMode(tab.id)}
-                className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all duration-150 ${
+                className={`relative px-4 text-[13px] transition-colors duration-[70ms] ${
                   rightPanelMode === tab.id
-                    ? 'bg-gray-900 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700'
+                    ? 'text-gray-100 font-medium'
+                    : 'text-gray-70 hover:text-gray-100'
                 }`}
               >
                 {tab.label}
+                {rightPanelMode === tab.id && (
+                  <span className="absolute inset-x-0 bottom-0 h-[2px] bg-blue-60" />
+                )}
               </button>
             ))}
-          </div>
+          </nav>
+
+          {/* Backend status */}
+          <BackendStatus />
         </div>
       </header>
 
-      <div className="flex h-[calc(100vh-51px)]">
-        {/* Left sidebar - Gate Palette */}
-        <aside className="w-56 bg-white border-r border-qborder overflow-y-auto shadow-sm">
+      <div className="flex h-[calc(100vh-48px)]">
+        {/* Left sidebar — gate palette */}
+        <aside className="w-56 bg-white border-r border-line overflow-y-auto">
           <GatePalette />
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 flex flex-col overflow-hidden">
-          {/* Circuit Builder */}
-          <div className="flex-1 overflow-auto p-4 bg-surface-2">
+        <main className="flex-1 flex flex-col overflow-hidden bg-gray-10">
+          {/* Circuit builder */}
+          <div className="flex-1 overflow-auto p-4">
             <CircuitBuilder />
           </div>
 
-          {/* Control Panel */}
-          <div className="border-t border-qborder bg-white p-3 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+          {/* Control deck */}
+          <div className="border-t border-line bg-white px-4 py-3 space-y-3">
             <ControlPanel />
+            <div className="border-t border-line pt-3">
+              <StepControl />
+            </div>
           </div>
         </main>
 
-        {/* Right sidebar */}
-        <aside className="w-80 bg-white border-l border-qborder flex flex-col shadow-sm">
+        {/* Right rail */}
+        <aside className="w-80 bg-white border-l border-line flex flex-col">
           {rightPanelMode === 'algorithms' ? (
             <AlgorithmsPanel />
           ) : rightPanelMode === 'research' ? (
@@ -88,43 +117,47 @@ function App() {
           ) : (
             <>
               {/* Visualization tabs */}
-              <div className="flex border-b border-qborder bg-surface">
+              <div className="flex border-b border-line">
                 {(['histogram', 'state', 'bloch'] as const).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`flex-1 px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-all duration-150 ${
+                    className={`relative flex-1 px-3 py-2.5 text-[13px] transition-colors duration-[70ms] ${
                       activeTab === tab
-                        ? 'bg-accent text-white'
-                        : 'text-gray-400 hover:text-accent hover:bg-blue-50'
+                        ? 'text-gray-100 font-medium'
+                        : 'text-gray-70 hover:text-gray-100'
                     }`}
                   >
-                    {tab === 'histogram' ? 'HIST' : tab === 'state' ? 'STATE' : 'BLOCH'}
+                    {tab === 'histogram' ? 'Histogram' : tab === 'state' ? 'State' : 'Bloch'}
+                    {activeTab === tab && (
+                      <span className="absolute inset-x-0 bottom-0 h-[2px] bg-blue-60" />
+                    )}
                   </button>
                 ))}
               </div>
 
               {/* Visualization content */}
-              <div className="flex-1 overflow-auto p-3">
+              <div className="flex-1 overflow-auto p-4">
                 {activeTab === 'histogram' && <Histogram />}
                 {activeTab === 'state' && <StateVector />}
                 {activeTab === 'bloch' && <BlochSphere />}
               </div>
 
-              {/* Results summary */}
+              {/* Results */}
               {result && (
-                <div className="border-t border-qborder p-3 bg-surface">
-                  <div className="text-[10px] uppercase tracking-wider text-gray-400 mb-2 font-bold">
-                    RESULTS
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="panel p-2">
-                      <div className="text-gray-400 text-[10px]">SHOTS</div>
-                      <div className="font-bold text-gray-800">{result.shots}</div>
+                <div className="border-t border-line p-4">
+                  <div className="field-label mb-2">Results</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="stat p-2">
+                      <div className="text-[11px] text-gray-50">Shots</div>
+                      <div className="font-mono text-[13px] tabular-nums">{result.shots}</div>
                     </div>
-                    <div className="panel p-2">
-                      <div className="text-gray-400 text-[10px]">TIME</div>
-                      <div className="font-bold text-accent">{result.execution_time_ms.toFixed(1)}ms</div>
+                    <div className="stat p-2">
+                      <div className="text-[11px] text-gray-50">Time</div>
+                      <div className="font-mono text-[13px] tabular-nums">
+                        {result.execution_time_ms.toFixed(1)}
+                        <span className="text-gray-50 text-[11px] ml-0.5">ms</span>
+                      </div>
                     </div>
                   </div>
                 </div>

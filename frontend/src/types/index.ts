@@ -64,6 +64,8 @@ export interface StateSnapshot {
   params: number[];
   probabilities: number[];
   bloch_vectors: BlochVector[];
+  amplitudes_real?: number[];
+  amplitudes_imag?: number[];
   measurement_outcome?: number;
 }
 
@@ -103,6 +105,24 @@ export interface ExecutionRequest {
   record_snapshots: boolean;
 }
 
+// Gate family color code (functional grouping, IBM-Composer style)
+export type GateFamily = 'pauli' | 'hadamard' | 'phase' | 'rotation' | 'controlled' | 'measure';
+
+export interface GateFamilyMeta {
+  label: string;
+  fill: string; // solid tile fill (flat, no border, no glow)
+  text: string; // tile label color, picked per-contrast
+}
+
+export const GATE_FAMILIES: Record<GateFamily, GateFamilyMeta> = {
+  pauli:      { label: 'Pauli',       fill: '#4589ff', text: '#ffffff' },
+  hadamard:   { label: 'Hadamard',    fill: '#fa4d56', text: '#ffffff' },
+  phase:      { label: 'Phase',       fill: '#a56eff', text: '#ffffff' },
+  rotation:   { label: 'Rotation',    fill: '#009d9a', text: '#161616' },
+  controlled: { label: 'Controlled',  fill: '#24a148', text: '#ffffff' },
+  measure:    { label: 'Measurement', fill: '#8d8d8d', text: '#161616' },
+};
+
 // Gate metadata for UI
 export interface GateInfo {
   name: GateName;
@@ -112,6 +132,7 @@ export interface GateInfo {
   numParams: number;
   paramNames?: string[];
   color: string;
+  family: GateFamily;
   symbol: string;
 }
 
@@ -135,38 +156,38 @@ export const GATE_CATEGORIES = {
   },
 };
 
-// Gate info lookup - monochrome brutalist colors
+// Gate info lookup — color = family color (see GATE_FAMILIES)
 export const GATE_INFO: Record<GateName, GateInfo> = {
-  I: { name: 'I', displayName: 'Identity', description: 'Identity gate', numQubits: 1, numParams: 0, color: '#666', symbol: 'I' },
-  X: { name: 'X', displayName: 'Pauli-X', description: 'NOT gate, bit flip', numQubits: 1, numParams: 0, color: '#fff', symbol: 'X' },
-  Y: { name: 'Y', displayName: 'Pauli-Y', description: 'Y rotation by π', numQubits: 1, numParams: 0, color: '#fff', symbol: 'Y' },
-  Z: { name: 'Z', displayName: 'Pauli-Z', description: 'Phase flip', numQubits: 1, numParams: 0, color: '#fff', symbol: 'Z' },
-  H: { name: 'H', displayName: 'Hadamard', description: 'Creates superposition', numQubits: 1, numParams: 0, color: '#fff', symbol: 'H' },
-  S: { name: 'S', displayName: 'S Gate', description: 'π/2 phase', numQubits: 1, numParams: 0, color: '#aaa', symbol: 'S' },
-  Sdg: { name: 'Sdg', displayName: 'S†', description: '-π/2 phase', numQubits: 1, numParams: 0, color: '#aaa', symbol: 'S†' },
-  T: { name: 'T', displayName: 'T Gate', description: 'π/4 phase', numQubits: 1, numParams: 0, color: '#aaa', symbol: 'T' },
-  Tdg: { name: 'Tdg', displayName: 'T†', description: '-π/4 phase', numQubits: 1, numParams: 0, color: '#aaa', symbol: 'T†' },
-  SX: { name: 'SX', displayName: '√X', description: 'Square root of X', numQubits: 1, numParams: 0, color: '#fff', symbol: '√X' },
-  SXdg: { name: 'SXdg', displayName: '√X†', description: 'Inverse √X', numQubits: 1, numParams: 0, color: '#fff', symbol: '√X†' },
-  Rx: { name: 'Rx', displayName: 'Rx(θ)', description: 'X-axis rotation', numQubits: 1, numParams: 1, paramNames: ['θ'], color: '#888', symbol: 'Rx' },
-  Ry: { name: 'Ry', displayName: 'Ry(θ)', description: 'Y-axis rotation', numQubits: 1, numParams: 1, paramNames: ['θ'], color: '#888', symbol: 'Ry' },
-  Rz: { name: 'Rz', displayName: 'Rz(θ)', description: 'Z-axis rotation', numQubits: 1, numParams: 1, paramNames: ['θ'], color: '#888', symbol: 'Rz' },
-  Phase: { name: 'Phase', displayName: 'P(θ)', description: 'Phase gate', numQubits: 1, numParams: 1, paramNames: ['θ'], color: '#888', symbol: 'P' },
-  U1: { name: 'U1', displayName: 'U1(λ)', description: 'U1 gate', numQubits: 1, numParams: 1, paramNames: ['λ'], color: '#888', symbol: 'U1' },
-  U2: { name: 'U2', displayName: 'U2(φ,λ)', description: 'U2 gate', numQubits: 1, numParams: 2, paramNames: ['φ', 'λ'], color: '#888', symbol: 'U2' },
-  U3: { name: 'U3', displayName: 'U3(θ,φ,λ)', description: 'Universal gate', numQubits: 1, numParams: 3, paramNames: ['θ', 'φ', 'λ'], color: '#888', symbol: 'U3' },
-  CX: { name: 'CX', displayName: 'CNOT', description: 'Controlled-X', numQubits: 2, numParams: 0, color: '#fff', symbol: '⊕' },
-  CY: { name: 'CY', displayName: 'CY', description: 'Controlled-Y', numQubits: 2, numParams: 0, color: '#fff', symbol: 'CY' },
-  CZ: { name: 'CZ', displayName: 'CZ', description: 'Controlled-Z', numQubits: 2, numParams: 0, color: '#fff', symbol: 'CZ' },
-  SWAP: { name: 'SWAP', displayName: 'SWAP', description: 'Swap qubits', numQubits: 2, numParams: 0, color: '#aaa', symbol: '×' },
-  iSWAP: { name: 'iSWAP', displayName: 'iSWAP', description: 'iSWAP gate', numQubits: 2, numParams: 0, color: '#aaa', symbol: 'i×' },
-  CRx: { name: 'CRx', displayName: 'CRx(θ)', description: 'Controlled Rx', numQubits: 2, numParams: 1, paramNames: ['θ'], color: '#888', symbol: 'CRx' },
-  CRy: { name: 'CRy', displayName: 'CRy(θ)', description: 'Controlled Ry', numQubits: 2, numParams: 1, paramNames: ['θ'], color: '#888', symbol: 'CRy' },
-  CRz: { name: 'CRz', displayName: 'CRz(θ)', description: 'Controlled Rz', numQubits: 2, numParams: 1, paramNames: ['θ'], color: '#888', symbol: 'CRz' },
-  CPhase: { name: 'CPhase', displayName: 'CP(θ)', description: 'Controlled Phase', numQubits: 2, numParams: 1, paramNames: ['θ'], color: '#888', symbol: 'CP' },
-  Rxx: { name: 'Rxx', displayName: 'Rxx(θ)', description: 'XX rotation', numQubits: 2, numParams: 1, paramNames: ['θ'], color: '#888', symbol: 'Rxx' },
-  Ryy: { name: 'Ryy', displayName: 'Ryy(θ)', description: 'YY rotation', numQubits: 2, numParams: 1, paramNames: ['θ'], color: '#888', symbol: 'Ryy' },
-  Rzz: { name: 'Rzz', displayName: 'Rzz(θ)', description: 'ZZ rotation', numQubits: 2, numParams: 1, paramNames: ['θ'], color: '#888', symbol: 'Rzz' },
-  CCX: { name: 'CCX', displayName: 'Toffoli', description: 'CC-NOT gate', numQubits: 3, numParams: 0, color: '#fff', symbol: '⊕' },
-  CSWAP: { name: 'CSWAP', displayName: 'Fredkin', description: 'Controlled SWAP', numQubits: 3, numParams: 0, color: '#aaa', symbol: 'C×' },
+  I: { name: 'I', displayName: 'Identity', description: 'Identity gate', numQubits: 1, numParams: 0, color: '#4589ff', family: 'pauli', symbol: 'I' },
+  X: { name: 'X', displayName: 'Pauli-X', description: 'NOT gate, bit flip', numQubits: 1, numParams: 0, color: '#4589ff', family: 'pauli', symbol: 'X' },
+  Y: { name: 'Y', displayName: 'Pauli-Y', description: 'Y rotation by π', numQubits: 1, numParams: 0, color: '#4589ff', family: 'pauli', symbol: 'Y' },
+  Z: { name: 'Z', displayName: 'Pauli-Z', description: 'Phase flip', numQubits: 1, numParams: 0, color: '#4589ff', family: 'pauli', symbol: 'Z' },
+  H: { name: 'H', displayName: 'Hadamard', description: 'Creates superposition', numQubits: 1, numParams: 0, color: '#fa4d56', family: 'hadamard', symbol: 'H' },
+  S: { name: 'S', displayName: 'S Gate', description: 'π/2 phase', numQubits: 1, numParams: 0, color: '#a56eff', family: 'phase', symbol: 'S' },
+  Sdg: { name: 'Sdg', displayName: 'S†', description: '-π/2 phase', numQubits: 1, numParams: 0, color: '#a56eff', family: 'phase', symbol: 'S†' },
+  T: { name: 'T', displayName: 'T Gate', description: 'π/4 phase', numQubits: 1, numParams: 0, color: '#a56eff', family: 'phase', symbol: 'T' },
+  Tdg: { name: 'Tdg', displayName: 'T†', description: '-π/4 phase', numQubits: 1, numParams: 0, color: '#a56eff', family: 'phase', symbol: 'T†' },
+  SX: { name: 'SX', displayName: '√X', description: 'Square root of X', numQubits: 1, numParams: 0, color: '#4589ff', family: 'pauli', symbol: '√X' },
+  SXdg: { name: 'SXdg', displayName: '√X†', description: 'Inverse √X', numQubits: 1, numParams: 0, color: '#4589ff', family: 'pauli', symbol: '√X†' },
+  Rx: { name: 'Rx', displayName: 'Rx(θ)', description: 'X-axis rotation', numQubits: 1, numParams: 1, paramNames: ['θ'], color: '#009d9a', family: 'rotation', symbol: 'Rx' },
+  Ry: { name: 'Ry', displayName: 'Ry(θ)', description: 'Y-axis rotation', numQubits: 1, numParams: 1, paramNames: ['θ'], color: '#009d9a', family: 'rotation', symbol: 'Ry' },
+  Rz: { name: 'Rz', displayName: 'Rz(θ)', description: 'Z-axis rotation', numQubits: 1, numParams: 1, paramNames: ['θ'], color: '#a56eff', family: 'phase', symbol: 'Rz' },
+  Phase: { name: 'Phase', displayName: 'P(θ)', description: 'Phase gate', numQubits: 1, numParams: 1, paramNames: ['θ'], color: '#a56eff', family: 'phase', symbol: 'P' },
+  U1: { name: 'U1', displayName: 'U1(λ)', description: 'U1 gate', numQubits: 1, numParams: 1, paramNames: ['λ'], color: '#a56eff', family: 'phase', symbol: 'U1' },
+  U2: { name: 'U2', displayName: 'U2(φ,λ)', description: 'U2 gate', numQubits: 1, numParams: 2, paramNames: ['φ', 'λ'], color: '#009d9a', family: 'rotation', symbol: 'U2' },
+  U3: { name: 'U3', displayName: 'U3(θ,φ,λ)', description: 'Universal gate', numQubits: 1, numParams: 3, paramNames: ['θ', 'φ', 'λ'], color: '#009d9a', family: 'rotation', symbol: 'U3' },
+  CX: { name: 'CX', displayName: 'CNOT', description: 'Controlled-X', numQubits: 2, numParams: 0, color: '#24a148', family: 'controlled', symbol: '⊕' },
+  CY: { name: 'CY', displayName: 'CY', description: 'Controlled-Y', numQubits: 2, numParams: 0, color: '#24a148', family: 'controlled', symbol: 'CY' },
+  CZ: { name: 'CZ', displayName: 'CZ', description: 'Controlled-Z', numQubits: 2, numParams: 0, color: '#24a148', family: 'controlled', symbol: 'CZ' },
+  SWAP: { name: 'SWAP', displayName: 'SWAP', description: 'Swap qubits', numQubits: 2, numParams: 0, color: '#24a148', family: 'controlled', symbol: '×' },
+  iSWAP: { name: 'iSWAP', displayName: 'iSWAP', description: 'iSWAP gate', numQubits: 2, numParams: 0, color: '#24a148', family: 'controlled', symbol: 'i×' },
+  CRx: { name: 'CRx', displayName: 'CRx(θ)', description: 'Controlled Rx', numQubits: 2, numParams: 1, paramNames: ['θ'], color: '#24a148', family: 'controlled', symbol: 'CRx' },
+  CRy: { name: 'CRy', displayName: 'CRy(θ)', description: 'Controlled Ry', numQubits: 2, numParams: 1, paramNames: ['θ'], color: '#24a148', family: 'controlled', symbol: 'CRy' },
+  CRz: { name: 'CRz', displayName: 'CRz(θ)', description: 'Controlled Rz', numQubits: 2, numParams: 1, paramNames: ['θ'], color: '#24a148', family: 'controlled', symbol: 'CRz' },
+  CPhase: { name: 'CPhase', displayName: 'CP(θ)', description: 'Controlled Phase', numQubits: 2, numParams: 1, paramNames: ['θ'], color: '#a56eff', family: 'phase', symbol: 'CP' },
+  Rxx: { name: 'Rxx', displayName: 'Rxx(θ)', description: 'XX rotation', numQubits: 2, numParams: 1, paramNames: ['θ'], color: '#009d9a', family: 'rotation', symbol: 'Rxx' },
+  Ryy: { name: 'Ryy', displayName: 'Ryy(θ)', description: 'YY rotation', numQubits: 2, numParams: 1, paramNames: ['θ'], color: '#009d9a', family: 'rotation', symbol: 'Ryy' },
+  Rzz: { name: 'Rzz', displayName: 'Rzz(θ)', description: 'ZZ rotation', numQubits: 2, numParams: 1, paramNames: ['θ'], color: '#009d9a', family: 'rotation', symbol: 'Rzz' },
+  CCX: { name: 'CCX', displayName: 'Toffoli', description: 'CC-NOT gate', numQubits: 3, numParams: 0, color: '#24a148', family: 'controlled', symbol: '⊕' },
+  CSWAP: { name: 'CSWAP', displayName: 'Fredkin', description: 'Controlled SWAP', numQubits: 3, numParams: 0, color: '#24a148', family: 'controlled', symbol: 'C×' },
 };

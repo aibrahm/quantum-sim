@@ -27,12 +27,12 @@ function BlochState({ x, y, z }: BlochStateProps) {
     <group>
       <Line
         points={arrowPoints}
-        color="#0077cc"
+        color="#0f62fe"
         lineWidth={3}
       />
       <mesh ref={meshRef} position={[x, z, y]}>
         <sphereGeometry args={[0.07, 12, 12]} />
-        <meshBasicMaterial color="#0077cc" />
+        <meshBasicMaterial color="#0f62fe" />
       </mesh>
     </group>
   );
@@ -49,9 +49,9 @@ function BlochSphereGeometry() {
       {/* Transparent sphere */}
       <Sphere args={[1, 16, 16]}>
         <meshBasicMaterial
-          color="#c8c8e0"
+          color="#c6c6c6"
           transparent
-          opacity={0.25}
+          opacity={0.35}
           side={THREE.DoubleSide}
           wireframe
         />
@@ -65,7 +65,7 @@ function BlochSphereGeometry() {
             const theta = (i / 64) * 2 * Math.PI;
             return new THREE.Vector3(Math.cos(theta), 0, Math.sin(theta));
           })}
-          color="#aaa"
+          color="#c6c6c6"
           lineWidth={1}
         />
 
@@ -75,7 +75,7 @@ function BlochSphereGeometry() {
             const theta = (i / 64) * 2 * Math.PI;
             return new THREE.Vector3(Math.cos(theta), Math.sin(theta), 0);
           })}
-          color="#aaa"
+          color="#c6c6c6"
           lineWidth={1}
         />
 
@@ -85,7 +85,7 @@ function BlochSphereGeometry() {
             const theta = (i / 64) * 2 * Math.PI;
             return new THREE.Vector3(0, Math.sin(theta), Math.cos(theta));
           })}
-          color="#aaa"
+          color="#c6c6c6"
           lineWidth={1}
         />
       </group>
@@ -95,13 +95,13 @@ function BlochSphereGeometry() {
         {/* X axis */}
         <Line
           points={[new THREE.Vector3(-1.2, 0, 0), new THREE.Vector3(1.2, 0, 0)]}
-          color="#888"
+          color="#8d8d8d"
           lineWidth={1}
         />
         <Text
           position={[1.4, 0, 0]}
           fontSize={0.12}
-          color="#888"
+          color="#525252"
         >
           X
         </Text>
@@ -109,13 +109,13 @@ function BlochSphereGeometry() {
         {/* Y axis */}
         <Line
           points={[new THREE.Vector3(0, 0, -1.2), new THREE.Vector3(0, 0, 1.2)]}
-          color="#888"
+          color="#8d8d8d"
           lineWidth={1}
         />
         <Text
           position={[0, 0, 1.4]}
           fontSize={0.12}
-          color="#888"
+          color="#525252"
         >
           Y
         </Text>
@@ -123,20 +123,20 @@ function BlochSphereGeometry() {
         {/* Z axis */}
         <Line
           points={[new THREE.Vector3(0, -1.2, 0), new THREE.Vector3(0, 1.2, 0)]}
-          color="#888"
+          color="#8d8d8d"
           lineWidth={1}
         />
         <Text
           position={[0, 1.4, 0]}
           fontSize={0.12}
-          color="#333"
+          color="#161616"
         >
           |0⟩
         </Text>
         <Text
           position={[0, -1.4, 0]}
           fontSize={0.12}
-          color="#333"
+          color="#161616"
         >
           |1⟩
         </Text>
@@ -149,19 +149,19 @@ function BlochSphereGeometry() {
       <group>
         <mesh position={[0, 1, 0]}>
           <sphereGeometry args={[0.03, 6, 6]} />
-          <meshBasicMaterial color="#444" />
+          <meshBasicMaterial color="#8d8d8d" />
         </mesh>
         <mesh position={[0, -1, 0]}>
           <sphereGeometry args={[0.03, 6, 6]} />
-          <meshBasicMaterial color="#444" />
+          <meshBasicMaterial color="#8d8d8d" />
         </mesh>
         <mesh position={[1, 0, 0]}>
           <sphereGeometry args={[0.03, 6, 6]} />
-          <meshBasicMaterial color="#444" />
+          <meshBasicMaterial color="#8d8d8d" />
         </mesh>
         <mesh position={[-1, 0, 0]}>
           <sphereGeometry args={[0.03, 6, 6]} />
-          <meshBasicMaterial color="#444" />
+          <meshBasicMaterial color="#8d8d8d" />
         </mesh>
       </group>
     </group>
@@ -175,27 +175,29 @@ export function BlochSphere() {
 
   return (
     <div className="space-y-3 text-xs">
-      {/* Qubit selector */}
+      {/* Qubit selector — segmented */}
       {nQubits > 1 && (
-        <div className="flex gap-1">
+        <div className="flex border border-line rounded-[2px] overflow-hidden w-fit">
           {Array.from({ length: nQubits }, (_, i) => (
             <button
               key={i}
               onClick={() => setSelectedQubit(i)}
-              className={`px-2 py-1 border font-bold ${
+              className={`px-2.5 py-1 text-[11px] font-mono transition-colors duration-[70ms] ${
+                i > 0 ? 'border-l border-line' : ''
+              } ${
                 displayQubit === i
-                  ? 'border-accent bg-accent text-white'
-                  : 'border-qborder hover:border-accent hover:bg-blue-50'
+                  ? 'bg-blue-10 text-blue-60 font-medium'
+                  : 'bg-white text-gray-70 hover:bg-gray-10'
               }`}
             >
-              Q{i}
+              q{i}
             </button>
           ))}
         </div>
       )}
 
       {/* 3D Bloch sphere */}
-      <div className="aspect-square panel overflow-hidden rounded">
+      <div className="aspect-square overflow-hidden rounded-[2px] border border-line bg-white">
         <Canvas camera={{ position: [2.5, 2, 2.5], fov: 45 }}>
           <BlochSphereGeometry />
           <OrbitControls
@@ -208,19 +210,17 @@ export function BlochSphere() {
       </div>
 
       {/* Coordinates */}
-      <div className="grid grid-cols-3 gap-1">
-        <div className="panel p-2 text-center">
-          <div className="text-gray-600">X</div>
-          <div className="font-bold">{vector.x.toFixed(3)}</div>
-        </div>
-        <div className="panel p-2 text-center">
-          <div className="text-gray-600">Y</div>
-          <div className="font-bold">{vector.y.toFixed(3)}</div>
-        </div>
-        <div className="panel p-2 text-center">
-          <div className="text-gray-600">Z</div>
-          <div className="font-bold">{vector.z.toFixed(3)}</div>
-        </div>
+      <div className="grid grid-cols-3 gap-1.5">
+        {([
+          ['X', vector.x],
+          ['Y', vector.y],
+          ['Z', vector.z],
+        ] as const).map(([axis, val]) => (
+          <div key={axis} className="stat p-2 text-center">
+            <div className="text-[11px] text-gray-50">{axis}</div>
+            <div className="font-mono text-[13px] tabular-nums">{val.toFixed(3)}</div>
+          </div>
+        ))}
       </div>
     </div>
   );

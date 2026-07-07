@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useCircuitStore } from '../stores/circuitStore';
-import { createCircuit, runCircuit, exportOpenQASM } from '../api/client';
+import { createCircuit, runCircuit, exportOpenQASM, getStateVector } from '../api/client';
 
 export function ControlPanel() {
   const {
@@ -18,6 +18,7 @@ export function ControlPanel() {
     setResult,
     setBlochVectors,
     setProbabilities,
+    setAmplitudes,
     clearOperations,
     resetExecution,
     toOperationsPayload,
@@ -35,12 +36,26 @@ export function ControlPanel() {
         record_snapshots: recordSnapshots,
       });
 
-      return result;
+      // Fetch exact amplitudes so the State view can show real phase.
+      let stateVector = null;
+      if (mode === 'statevector') {
+        try {
+          stateVector = await getStateVector(circuit.id);
+        } catch {
+          stateVector = null;
+        }
+      }
+
+      return { result, stateVector };
     },
-    onSuccess: (result) => {
+    onSuccess: ({ result, stateVector }) => {
       setResult(result);
 
-      if (result.snapshots.length > 0) {
+      if (stateVector) {
+        setAmplitudes(stateVector.amplitudes_real, stateVector.amplitudes_imag);
+        setProbabilities(stateVector.probabilities);
+        setBlochVectors(stateVector.bloch_vectors);
+      } else if (result.snapshots.length > 0) {
         const lastSnapshot = result.snapshots[result.snapshots.length - 1];
         setBlochVectors(lastSnapshot.bloch_vectors);
         setProbabilities(lastSnapshot.probabilities);
@@ -94,36 +109,36 @@ export function ControlPanel() {
         <button
           onClick={handleRun}
           disabled={runMutation.isPending || operations.length === 0}
-          className="px-5 py-2 btn-accent rounded text-[10px] tracking-widest"
+          className="btn-primary px-6 py-2"
         >
-          {runMutation.isPending ? 'RUNNING...' : '▶ RUN'}
+          {runMutation.isPending ? 'Running…' : 'Run'}
         </button>
 
         <button
           onClick={handleReset}
-          className="px-3 py-2 border border-qborder hover:border-accent/50 hover:text-accent font-bold uppercase rounded transition-colors text-[10px]"
+          className="btn-secondary px-3 py-2"
           title="Reset"
         >
-          RST
+          Reset
         </button>
 
         <button
           onClick={handleClear}
-          className="px-3 py-2 border border-qborder hover:border-red-500/50 hover:text-red-400 font-bold uppercase rounded transition-colors text-[10px]"
+          className="btn-danger px-3 py-2"
           title="Clear"
         >
-          CLR
+          Clear
         </button>
       </div>
 
       {/* Center: Settings */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <span className="text-gray-500 uppercase text-[10px]">SHOTS</span>
+          <span className="field-label">Shots</span>
           <select
             value={shots}
             onChange={(e) => setShots(parseInt(e.target.value))}
-            className="bg-black border border-gray-600 px-2 py-1"
+            className="px-2 py-1 text-[12px]"
           >
             <option value={100}>100</option>
             <option value={1024}>1024</option>
@@ -133,14 +148,14 @@ export function ControlPanel() {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-gray-500 uppercase text-[10px]">MODE</span>
+          <span className="field-label">Mode</span>
           <select
             value={mode}
             onChange={(e) => setMode(e.target.value as 'statevector' | 'density_matrix')}
-            className="bg-black border border-gray-600 px-2 py-1"
+            className="px-2 py-1 text-[12px]"
           >
-            <option value="statevector">SV</option>
-            <option value="density_matrix">DM</option>
+            <option value="statevector">State vector</option>
+            <option value="density_matrix">Density matrix</option>
           </select>
         </div>
 
@@ -151,22 +166,22 @@ export function ControlPanel() {
             onChange={(e) => setRecordSnapshots(e.target.checked)}
             className="w-3 h-3"
           />
-          <span className="text-gray-500 uppercase">SNAP</span>
+          <span className="field-label">Snapshots</span>
         </label>
       </div>
 
-      {/* Right: Export */}
-      <div className="flex items-center gap-2">
+      {/* Right: Export + op counter */}
+      <div className="flex items-center gap-3">
         <button
           onClick={() => exportMutation.mutate()}
           disabled={exportMutation.isPending || operations.length === 0}
-          className="px-3 py-2 border border-qborder hover:border-accent-purple/50 hover:text-accent-purple disabled:border-qborder disabled:text-gray-600 font-bold uppercase rounded transition-colors text-[10px]"
+          className="btn-secondary px-3 py-2"
         >
           QASM
         </button>
 
-        <span className="text-gray-600">
-          {operations.length} OPS
+        <span className="text-gray-70 font-mono tabular-nums">
+          {operations.length} op{operations.length === 1 ? '' : 's'}
         </span>
       </div>
     </div>

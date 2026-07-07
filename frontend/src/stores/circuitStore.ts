@@ -23,6 +23,8 @@ interface CircuitState {
   selectedQubit: number | null;
   blochVectors: BlochVector[];
   probabilities: number[];
+  amplitudesReal: number[];
+  amplitudesImag: number[];
 
   // Settings
   mode: 'statevector' | 'density_matrix';
@@ -58,6 +60,7 @@ interface CircuitState {
   setSelectedQubit: (qubit: number | null) => void;
   setBlochVectors: (vectors: BlochVector[]) => void;
   setProbabilities: (probs: number[]) => void;
+  setAmplitudes: (real: number[], imag: number[]) => void;
 
   // Settings actions
   setMode: (mode: 'statevector' | 'density_matrix') => void;
@@ -119,6 +122,8 @@ const initialState = {
   selectedQubit: null,
   blochVectors: [],
   probabilities: [],
+  amplitudesReal: [],
+  amplitudesImag: [],
   mode: 'statevector' as const,
   shots: 1024,
   recordSnapshots: true,
@@ -136,6 +141,8 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
     initialStates: Array(n).fill('0') as QubitInitState[],
     blochVectors: Array(n).fill(null).map((_, i) => ({ qubit: i, x: 0, y: 0, z: 1 })),
     probabilities: Array(2 ** n).fill(0).map((_, i) => i === 0 ? 1 : 0),
+    amplitudesReal: Array(2 ** n).fill(0).map((_, i) => i === 0 ? 1 : 0),
+    amplitudesImag: Array(2 ** n).fill(0),
   }),
 
   setName: (name) => set({ name }),
@@ -207,6 +214,8 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
     snapshots: [...state.snapshots, snapshot],
     blochVectors: snapshot.bloch_vectors,
     probabilities: snapshot.probabilities,
+    amplitudesReal: snapshot.amplitudes_real ?? state.amplitudesReal,
+    amplitudesImag: snapshot.amplitudes_imag ?? state.amplitudesImag,
     currentStep: snapshot.step,
   })),
 
@@ -222,6 +231,8 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
     result: null,
     blochVectors: Array(get().nQubits).fill(null).map((_, i) => ({ qubit: i, x: 0, y: 0, z: 1 })),
     probabilities: Array(2 ** get().nQubits).fill(0).map((_, i) => i === 0 ? 1 : 0),
+    amplitudesReal: Array(2 ** get().nQubits).fill(0).map((_, i) => i === 0 ? 1 : 0),
+    amplitudesImag: Array(2 ** get().nQubits).fill(0),
   }),
 
   setSelectedQubit: (qubit) => set({ selectedQubit: qubit }),
@@ -229,6 +240,8 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
   setBlochVectors: (vectors) => set({ blochVectors: vectors }),
 
   setProbabilities: (probs) => set({ probabilities: probs }),
+
+  setAmplitudes: (real, imag) => set({ amplitudesReal: real, amplitudesImag: imag }),
 
   setMode: (mode) => set({ mode }),
 

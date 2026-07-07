@@ -16,41 +16,45 @@ export function ResearchPanel() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="border-b border-qborder px-3 py-2 bg-surface">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-gray-500">RESEARCH IMPLEMENTATION</div>
+      <div className="border-b border-line px-4 py-3">
+        <div className="text-sm font-semibold">Research implementation</div>
       </div>
 
-      <div className="flex-1 overflow-auto p-3 space-y-3 text-xs">
+      <div className="flex-1 overflow-auto p-4 space-y-3 text-xs">
         {/* Primary paper citation */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
-          <div className="text-accent uppercase font-bold text-[10px] tracking-wider">BASED ON</div>
-          <div className="text-[11px] text-gray-800 leading-relaxed font-medium">
+        <div className="panel p-3 space-y-2">
+          <div className="field-label">Based on</div>
+          <div className="text-[12px] leading-relaxed font-medium">
             A. Gilyén, Y. Su, G. H. Low, N. Wiebe
           </div>
-          <div className="text-[11px] text-gray-700 leading-relaxed italic">
+          <div className="text-[12px] text-gray-70 leading-relaxed italic">
             "Quantum Singular Value Transformations and Beyond:
             Exponential Improvements for Quantum Matrix Arithmetics"
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <span className="text-[9px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">STOC 2019</span>
+          <div className="flex gap-2 flex-wrap items-center">
+            <span className="text-[11px] border border-line text-gray-70 px-2 py-0.5 rounded-[2px]">
+              STOC 2019
+            </span>
             <a href="https://arxiv.org/abs/1806.01838" target="_blank" rel="noopener noreferrer"
-              className="text-[9px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold hover:bg-blue-200 transition-colors">
+              className="text-[11px] text-blue-60 hover:underline">
               arXiv:1806.01838
             </a>
           </div>
         </div>
 
         {/* Precursor paper */}
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 space-y-1">
-          <div className="text-accent-purple uppercase font-bold text-[10px] tracking-wider">PRECURSOR</div>
-          <div className="text-[10px] text-gray-700 leading-relaxed">
+        <div className="panel p-3 space-y-1.5">
+          <div className="field-label">Precursor</div>
+          <div className="text-[11px] text-gray-70 leading-relaxed">
             G. H. Low, I. L. Chuang — <span className="italic">"Quantum Signal Processing
             by Single-Qubit Dynamics"</span>
           </div>
-          <div className="flex gap-2">
-            <span className="text-[9px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">PRL 2017</span>
+          <div className="flex gap-2 items-center">
+            <span className="text-[11px] border border-line text-gray-70 px-2 py-0.5 rounded-[2px]">
+              PRL 2017
+            </span>
             <a href="https://arxiv.org/abs/1610.06546" target="_blank" rel="noopener noreferrer"
-              className="text-[9px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold hover:bg-purple-200 transition-colors">
+              className="text-[11px] text-blue-60 hover:underline">
               arXiv:1610.06546
             </a>
           </div>
@@ -58,11 +62,11 @@ export function ResearchPanel() {
 
         {/* What is QSVT */}
         <div className="panel p-3">
-          <div className="text-gray-500 uppercase font-bold text-[10px] tracking-wider mb-2">WHAT IS QSVT?</div>
-          <div className="text-[10px] text-gray-600 leading-relaxed space-y-2">
+          <div className="field-label mb-2">What is QSVT?</div>
+          <div className="text-[11px] text-gray-70 leading-relaxed space-y-2">
             <p>
-              QSVT is a <span className="text-gray-900 font-bold">unified framework</span> for quantum algorithms.
-              It applies <span className="text-gray-900 font-bold">polynomial transformations</span> to the singular
+              QSVT is a <span className="text-gray-100 font-medium">unified framework</span> for quantum algorithms.
+              It applies <span className="text-gray-100 font-medium">polynomial transformations</span> to the singular
               values of a block-encoded matrix using quantum signal processing.
             </p>
             <p>
@@ -70,7 +74,7 @@ export function ResearchPanel() {
               a circuit that implements p(A), where p is any bounded polynomial — by
               interleaving U with single-qubit phase rotations.
             </p>
-            <p className="text-gray-900 font-medium bg-yellow-50 border border-yellow-200 rounded p-2">
+            <p className="text-gray-100 border-l-2 border-blue-60 bg-blue-10 p-2">
               Key insight: major quantum algorithms are all special cases of choosing
               different polynomials p.
             </p>
@@ -79,88 +83,47 @@ export function ResearchPanel() {
 
         {/* Run demo */}
         <button onClick={() => mutation.mutate()} disabled={mutation.isPending}
-          className="w-full py-2.5 btn-accent rounded-md text-[10px] tracking-wider">
-          {mutation.isPending ? 'COMPUTING...' : 'RUN UNIFICATION DEMO'}
+          className="btn-primary w-full py-2.5">
+          {mutation.isPending ? 'Computing…' : 'Run unification demo'}
         </button>
 
         {result && (
           <div className="space-y-2">
-            <div className="text-gray-500 uppercase font-bold text-[10px] tracking-wider pt-1">
-              ALGORITHMS UNIFIED BY QSVT
+            <div className="field-label pt-1">
+              Algorithms unified by QSVT
             </div>
 
-            {/* Grover */}
-            <div className="panel overflow-hidden">
-              <button onClick={() => toggle('grover')}
-                className="w-full text-left px-3 py-2 flex justify-between items-center hover:bg-gray-50 transition-colors">
-                <span className="font-bold text-gray-800">1. GROVER'S SEARCH</span>
-                <span className="text-gray-400">{expandedSection === 'grover' ? '−' : '+'}</span>
-              </button>
-              {expandedSection === 'grover' && (
-                <div className="px-3 pb-3 space-y-1 text-[10px] text-gray-600 border-t border-gray-100 pt-2">
-                  <div><span className="text-gray-400 font-bold">Polynomial:</span> {result.grover.polynomial}</div>
-                  <div><span className="text-gray-400 font-bold">QSVT action:</span> {result.grover.qsvt_action}</div>
-                  <div><span className="text-gray-400 font-bold">Equivalent to:</span> {result.grover.classical_equivalent}</div>
-                  <div><span className="text-gray-400 font-bold">Complexity:</span> {result.grover.complexity}</div>
-                </div>
-              )}
-            </div>
-
-            {/* Phase Estimation */}
-            <div className="panel overflow-hidden">
-              <button onClick={() => toggle('qpe')}
-                className="w-full text-left px-3 py-2 flex justify-between items-center hover:bg-gray-50 transition-colors">
-                <span className="font-bold text-gray-800">2. PHASE ESTIMATION</span>
-                <span className="text-gray-400">{expandedSection === 'qpe' ? '−' : '+'}</span>
-              </button>
-              {expandedSection === 'qpe' && (
-                <div className="px-3 pb-3 space-y-1 text-[10px] text-gray-600 border-t border-gray-100 pt-2">
-                  <div><span className="text-gray-400 font-bold">Polynomial:</span> {result.phase_estimation.polynomial}</div>
-                  <div><span className="text-gray-400 font-bold">QSVT action:</span> {result.phase_estimation.qsvt_action}</div>
-                  <div><span className="text-gray-400 font-bold">Equivalent to:</span> {result.phase_estimation.classical_equivalent}</div>
-                  <div><span className="text-gray-400 font-bold">Advantage:</span> No QFT required</div>
-                </div>
-              )}
-            </div>
-
-            {/* HHL */}
-            <div className="panel overflow-hidden">
-              <button onClick={() => toggle('hhl')}
-                className="w-full text-left px-3 py-2 flex justify-between items-center hover:bg-gray-50 transition-colors">
-                <span className="font-bold text-gray-800">3. HHL (LINEAR SYSTEMS)</span>
-                <span className="text-gray-400">{expandedSection === 'hhl' ? '−' : '+'}</span>
-              </button>
-              {expandedSection === 'hhl' && (
-                <div className="px-3 pb-3 space-y-1 text-[10px] text-gray-600 border-t border-gray-100 pt-2">
-                  <div><span className="text-gray-400 font-bold">Polynomial:</span> {String(result.hhl.polynomial)}</div>
-                  <div><span className="text-gray-400 font-bold">QSVT action:</span> {String(result.hhl.qsvt_action)}</div>
-                  <div><span className="text-gray-400 font-bold">Equivalent to:</span> {String(result.hhl.classical_equivalent)}</div>
-                  <div><span className="text-gray-400 font-bold">Complexity:</span> {String(result.hhl.complexity)}</div>
-                </div>
-              )}
-            </div>
-
-            {/* Hamiltonian Simulation */}
-            <div className="panel overflow-hidden">
-              <button onClick={() => toggle('ham')}
-                className="w-full text-left px-3 py-2 flex justify-between items-center hover:bg-gray-50 transition-colors">
-                <span className="font-bold text-gray-800">4. HAMILTONIAN SIMULATION</span>
-                <span className="text-gray-400">{expandedSection === 'ham' ? '−' : '+'}</span>
-              </button>
-              {expandedSection === 'ham' && (
-                <div className="px-3 pb-3 space-y-1 text-[10px] text-gray-600 border-t border-gray-100 pt-2">
-                  <div><span className="text-gray-400 font-bold">Polynomial:</span> {String(result.hamiltonian_sim.polynomial)}</div>
-                  <div><span className="text-gray-400 font-bold">QSVT action:</span> {String(result.hamiltonian_sim.qsvt_action)}</div>
-                  <div><span className="text-gray-400 font-bold">Equivalent to:</span> {String(result.hamiltonian_sim.classical_equivalent)}</div>
-                  <div><span className="text-gray-400 font-bold">Complexity:</span> {String(result.hamiltonian_sim.complexity)}</div>
-                </div>
-              )}
-            </div>
+            {([
+              ['grover', "1. Grover's search", result.grover],
+              ['qpe', '2. Phase estimation', result.phase_estimation],
+              ['hhl', '3. HHL (linear systems)', result.hhl],
+              ['ham', '4. Hamiltonian simulation', result.hamiltonian_sim],
+            ] as const).map(([key, title, data]) => (
+              <div key={key} className="panel overflow-hidden">
+                <button onClick={() => toggle(key)}
+                  className="w-full text-left px-3 py-2 flex justify-between items-center hover:bg-gray-10 transition-colors duration-[70ms]">
+                  <span className="font-medium text-[12px]">{title}</span>
+                  <span className="text-gray-50">{expandedSection === key ? '−' : '+'}</span>
+                </button>
+                {expandedSection === key && (
+                  <div className="px-3 pb-3 space-y-1 text-[11px] text-gray-70 border-t border-line pt-2">
+                    <div><span className="text-gray-100 font-medium">Polynomial:</span> {String(data.polynomial)}</div>
+                    <div><span className="text-gray-100 font-medium">QSVT action:</span> {String(data.qsvt_action)}</div>
+                    <div><span className="text-gray-100 font-medium">Equivalent to:</span> {String(data.classical_equivalent)}</div>
+                    {'complexity' in data && data.complexity !== undefined ? (
+                      <div><span className="text-gray-100 font-medium">Complexity:</span> {String(data.complexity)}</div>
+                    ) : (
+                      <div><span className="text-gray-100 font-medium">Advantage:</span> No QFT required</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
 
             {/* Framework summary */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-2">
-              <div className="text-green-700 uppercase font-bold text-[10px] tracking-wider mb-1">KEY INSIGHT</div>
-              <div className="text-[10px] text-green-800 leading-relaxed">
+            <div className="panel border-l-2 !border-l-blue-60 p-3 mt-2">
+              <div className="field-label mb-1">Key insight</div>
+              <div className="text-[11px] text-gray-70 leading-relaxed">
                 {result.framework.key_insight}
               </div>
             </div>

@@ -36,35 +36,35 @@ export function Histogram() {
 
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-600 text-xs uppercase tracking-wider">
-        NO DATA — RUN CIRCUIT
+      <div className="flex items-center justify-center h-64 text-gray-50 text-xs">
+        No data — run the circuit
       </div>
     );
   }
 
   return (
     <div className="space-y-3 text-xs">
-      <div className="text-gray-400 uppercase font-bold text-[10px] tracking-wider">
-        {result ? 'MEASUREMENT' : 'PROBABILITY'}
+      <div className="text-[13px] font-semibold">
+        {result ? 'Measurement counts' : 'Probabilities'}
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         {data.map(({ label, value, count }) => (
           <div key={label}>
             <div className="flex items-center gap-2">
-              <span className="text-accent font-bold w-16">|{label}⟩</span>
-              <div className="flex-1 h-5 border border-qborder bg-gray-50 rounded overflow-hidden">
+              <span className="font-mono w-16 tabular-nums">|{label}⟩</span>
+              <div className="flex-1 h-4 bar-track">
                 <div
-                  className="h-full bar-fill rounded-sm"
+                  className="h-full bar-fill"
                   style={{ width: `${(value / maxValue) * 100}%` }}
                 />
               </div>
-              <span className="w-14 text-right text-gray-400">
+              <span className="w-14 text-right text-gray-70 font-mono tabular-nums">
                 {(value * 100).toFixed(1)}%
               </span>
             </div>
             {result && (
-              <div className="text-gray-600 ml-[72px]">
+              <div className="text-gray-50 text-[11px] ml-[72px] font-mono tabular-nums">
                 {count}/{result.shots}
               </div>
             )}
@@ -72,10 +72,10 @@ export function Histogram() {
         ))}
       </div>
 
-      <div className="pt-2 border-t border-qborder">
-        <div className="flex justify-between text-gray-600">
-          <span>STATES: {data.length}</span>
-          <span>MAX: {(maxValue * 100).toFixed(1)}%</span>
+      <div className="pt-2 border-t border-line">
+        <div className="flex justify-between text-gray-50 text-[11px] font-mono tabular-nums">
+          <span>States: {data.length}</span>
+          <span>Max: {(maxValue * 100).toFixed(1)}%</span>
         </div>
       </div>
     </div>

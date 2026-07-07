@@ -2,153 +2,232 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ------------------------------------------------------------------ */
+/* Design tokens — IBM Carbon light                                    */
+/* ------------------------------------------------------------------ */
 :root {
-  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', monospace;
-  line-height: 1.4;
+  --ground: #f4f4f4;
+  --surface: #ffffff;
+  --line: #e0e0e0;
+  --text-primary: #161616;
+  --text-secondary: #525252;
+  --text-helper: #8d8d8d;
+  --interactive: #0f62fe;
+  --interactive-hover: #0353e9;
+  --danger: #da1e28;
+
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  line-height: 1.45;
   font-weight: 400;
   color-scheme: light;
-  color: #1a1a2e;
-  background-color: #f0f0f5;
+  color: var(--text-primary);
+  background-color: var(--ground);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-variant-numeric: tabular-nums;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background: #f0f0f5;
+  background: var(--ground);
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #c0c0d0; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #9090a8; }
+::-webkit-scrollbar-thumb { background: #c6c6c6; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
 
-/* Header accent stripe */
-.header-line {
-  height: 3px;
-  background: linear-gradient(90deg, #0077cc 0%, #00b4d8 25%, #7c3aed 50%, #f472b6 75%, #0077cc 100%);
+::selection { background: #d0e2ff; }
+
+/* Focus ring — Carbon blue, everywhere */
+:focus-visible {
+  outline: 2px solid var(--interactive);
+  outline-offset: -2px;
 }
 
-/* Circuit grid area */
+/* ------------------------------------------------------------------ */
+/* Circuit canvas — Quirk-style white ground                           */
+/* ------------------------------------------------------------------ */
 .circuit-area {
-  background-color: #fafafe;
-  background-image:
-    linear-gradient(to right, #ddd 1px, transparent 1px),
-    linear-gradient(to bottom, #ddd 1px, transparent 1px);
-  background-size: 60px 60px;
+  background-color: var(--surface);
 }
 
-/* Panel card */
+/* ------------------------------------------------------------------ */
+/* Panels — white cards, 1px border, 2px corners                       */
+/* ------------------------------------------------------------------ */
 .panel {
-  background: #fff;
-  border: 1px solid #d0d0e0;
-  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 2px;
 }
 
-/* Gate palette buttons */
-.gate-btn {
-  transition: all 0.12s ease;
-  background: #f5f5fa;
-  border: 1.5px solid #d0d0e0;
-  border-radius: 6px;
-  color: #333;
-  font-weight: 700;
-}
-.gate-btn:hover {
-  border-color: #0077cc;
-  background: #e8f4fd;
-  color: #0077cc;
-  box-shadow: 0 2px 8px rgba(0, 119, 204, 0.15);
-}
-.gate-btn.active {
-  background: #0077cc;
-  border-color: #0077cc;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 119, 204, 0.3);
+/* Flat stat cell (data readout) */
+.stat {
+  background: var(--ground);
+  border-radius: 2px;
 }
 
-/* Primary action button */
-.btn-accent {
-  background: linear-gradient(135deg, #0077cc, #00b4d8);
-  color: #fff;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-radius: 6px;
-  transition: all 0.15s ease;
-  border: none;
-}
-.btn-accent:hover:not(:disabled) {
-  box-shadow: 0 4px 16px rgba(0, 119, 204, 0.3);
-  filter: brightness(1.08);
-}
-.btn-accent:disabled {
-  background: #d0d0e0;
-  color: #999;
+/* Field label */
+.field-label {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-secondary);
 }
 
-/* Gradient bar fills */
+/* ------------------------------------------------------------------ */
+/* Buttons                                                             */
+/* ------------------------------------------------------------------ */
+button { cursor: pointer; font-family: inherit; }
+button:disabled { cursor: not-allowed; }
+
+/* Carbon primary */
+.btn-primary {
+  font-size: 13px;
+  font-weight: 500;
+  color: #ffffff;
+  background: var(--interactive);
+  border: 1px solid transparent;
+  border-radius: 2px;
+  transition: background-color 70ms ease;
+}
+.btn-primary:hover:not(:disabled) { background: var(--interactive-hover); }
+.btn-primary:active:not(:disabled) { background: #002d9c; }
+.btn-primary:disabled {
+  background: #c6c6c6;
+  color: #8d8d8d;
+}
+
+/* Carbon secondary — white, 1px gray-50 border */
+.btn-secondary {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--surface);
+  border: 1px solid #8d8d8d;
+  border-radius: 2px;
+  transition: background-color 70ms ease, border-color 70ms ease;
+}
+.btn-secondary:hover:not(:disabled) { background: var(--ground); }
+.btn-secondary:disabled {
+  color: #c6c6c6;
+  border-color: #e0e0e0;
+}
+
+/* Danger — bordered red */
+.btn-danger {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--danger);
+  background: var(--surface);
+  border: 1px solid var(--danger);
+  border-radius: 2px;
+  transition: background-color 70ms ease;
+}
+.btn-danger:hover:not(:disabled) { background: #fff1f1; }
+.btn-danger:disabled {
+  color: #c6c6c6;
+  border-color: #e0e0e0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Data bars — flat, solid                                             */
+/* ------------------------------------------------------------------ */
+.bar-track {
+  background: var(--ground);
+  border-radius: 0;
+  overflow: hidden;
+}
 .bar-fill {
-  background: linear-gradient(90deg, #0077cc, #7c3aed);
-  border-radius: 2px;
+  background: var(--interactive);
+  transition: width 70ms ease;
 }
-.bar-fill-cyan {
-  background: linear-gradient(90deg, #00b4d8, #0077cc);
-  border-radius: 2px;
-}
-
-/* Glow (subtle on light) */
-.glow-accent {
-  box-shadow: 0 0 0 2px rgba(0, 119, 204, 0.25);
+.bar-fill-gray {
+  background: #393939;
+  transition: width 70ms ease;
 }
 
-/* Range input */
-input[type="range"] {
+/* Status dot */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status-dot.ok { background: #24a148; }
+.status-dot.err { background: var(--danger); }
+.status-dot.wait {
+  background: #f1c21b;
+  animation: dot-pulse 1.2s ease-in-out infinite;
+}
+.status-dot.running {
+  background: var(--interactive);
+  animation: dot-pulse 1.2s ease-in-out infinite;
+}
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Form controls                                                       */
+/* ------------------------------------------------------------------ */
+input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
-  height: 4px;
-  background: #d0d0e0;
-  border-radius: 2px;
-  outline: none;
+  height: 2px;
+  background: var(--line);
+  border-radius: 0;
+  outline-offset: 4px;
 }
-input[type="range"]::-webkit-slider-thumb {
+input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #0077cc;
+  background: var(--text-primary);
   cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
-input[type="range"]::-moz-range-thumb {
+input[type='range']::-moz-range-thumb {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #0077cc;
+  background: var(--text-primary);
   cursor: pointer;
   border: none;
 }
 
-/* Select */
 select {
-  background: #fff !important;
-  border: 1px solid #d0d0e0 !important;
-  border-radius: 4px;
-  color: #333;
+  background: var(--surface);
+  border: 1px solid #8d8d8d;
+  border-radius: 2px;
+  color: var(--text-primary);
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
 }
 select:focus {
-  border-color: #0077cc !important;
-  outline: none;
+  outline: 2px solid var(--interactive);
+  outline-offset: -2px;
 }
 
-/* Checkbox */
-input[type="checkbox"] {
-  accent-color: #0077cc;
+input[type='number'],
+input[type='text'] {
+  background: var(--surface);
+  border: 1px solid #8d8d8d;
+  border-radius: 2px;
+  color: var(--text-primary);
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+input[type='number']:focus,
+input[type='text']:focus {
+  outline: 2px solid var(--interactive);
+  outline-offset: -2px;
 }
 
-button { cursor: pointer; }
-button:disabled { cursor: not-allowed; }
+input[type='checkbox'] {
+  accent-color: var(--interactive);
+}

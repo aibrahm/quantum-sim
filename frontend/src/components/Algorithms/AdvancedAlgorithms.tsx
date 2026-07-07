@@ -5,6 +5,13 @@ import {
   type QPEResponse, type VQEResponse, type QAOAResponse, type QECResponse,
 } from '../../api/client';
 
+const toggleClass = (active: boolean) =>
+  `flex-1 py-1 border rounded-[2px] transition-colors duration-[70ms] ${
+    active
+      ? 'border-blue-60 bg-blue-10 text-blue-60 font-medium'
+      : 'border-line text-gray-70 hover:bg-gray-10'
+  }`;
+
 // =============================================================================
 // QPE Panel
 // =============================================================================
@@ -21,57 +28,57 @@ export function QPEPanel() {
 
   return (
     <div className="space-y-3 text-xs">
-      <div className="text-gray-400 uppercase font-bold text-[10px] tracking-wider">QUANTUM PHASE ESTIMATION</div>
-      <div className="text-gray-600 text-[10px]">
-        Estimate eigenphase of U|ψ⟩ = e^{'{2πiθ}'}|ψ⟩
+      <div className="text-[13px] font-semibold">Quantum phase estimation</div>
+      <div className="text-gray-50 text-[11px]">
+        Estimate the eigenphase of U|ψ⟩ = e^{'{2πiθ}'}|ψ⟩
       </div>
 
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <span className="text-gray-500 w-16">BITS</span>
+          <span className="field-label w-16">Bits</span>
           <input type="range" min={2} max={8} value={nPrecision}
             onChange={(e) => setNPrecision(parseInt(e.target.value))} className="flex-1" />
-          <span className="w-8 text-right">{nPrecision}</span>
+          <span className="w-8 text-right font-mono tabular-nums">{nPrecision}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-gray-500 w-16">PHASE</span>
+          <span className="field-label w-16">Phase</span>
           <input type="range" min={0} max={1} step={0.01} value={phase}
             onChange={(e) => setPhase(parseFloat(e.target.value))} className="flex-1" />
-          <span className="w-12 text-right">{phase.toFixed(2)}</span>
+          <span className="w-12 text-right font-mono tabular-nums">{phase.toFixed(2)}</span>
         </div>
       </div>
 
       <button onClick={() => mutation.mutate()} disabled={mutation.isPending}
-        className="w-full py-2 bg-accent text-white font-bold uppercase disabled:bg-gray-200 disabled:text-gray-400">
-        {mutation.isPending ? 'ESTIMATING...' : 'ESTIMATE'}
+        className="btn-primary w-full py-2">
+        {mutation.isPending ? 'Estimating…' : 'Estimate'}
       </button>
 
       {result && (
-        <div className="space-y-2 pt-2 border-t border-gray-200">
+        <div className="space-y-2 pt-2 border-t border-line">
           <div className="flex justify-between">
-            <span className="text-gray-500">DOMINANT</span>
-            <span className="font-bold">{result.dominant_phase.toFixed(4)}</span>
+            <span className="text-gray-50">Dominant</span>
+            <span className="font-mono font-medium tabular-nums">{result.dominant_phase.toFixed(4)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">TRUE θ</span>
-            <span>{result.true_phases.map(p => p.toFixed(4)).join(', ')}</span>
+            <span className="text-gray-50">True θ</span>
+            <span className="font-mono tabular-nums">{result.true_phases.map(p => p.toFixed(4)).join(', ')}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">RESOLUTION</span>
-            <span>1/{Math.pow(2, nPrecision)}</span>
+            <span className="text-gray-50">Resolution</span>
+            <span className="font-mono tabular-nums">1/{Math.pow(2, nPrecision)}</span>
           </div>
           <div className="pt-2">
-            <div className="text-gray-500 mb-1">PHASE DISTRIBUTION</div>
+            <div className="text-gray-50 mb-1">Phase distribution</div>
             {Object.entries(result.estimated_phases)
               .sort((a, b) => b[1] - a[1])
               .slice(0, 4)
               .map(([ph, prob]) => (
                 <div key={ph} className="flex items-center gap-2">
-                  <span className="text-gray-500 w-12">{parseFloat(ph).toFixed(3)}</span>
-                  <div className="flex-1 h-3 border border-gray-200 bg-gray-50">
+                  <span className="font-mono w-12 tabular-nums">{parseFloat(ph).toFixed(3)}</span>
+                  <div className="flex-1 h-3 bar-track">
                     <div className="h-full bar-fill" style={{ width: `${prob * 100}%` }} />
                   </div>
-                  <span className="w-10 text-right text-gray-400">{(prob * 100).toFixed(0)}%</span>
+                  <span className="w-10 text-right text-gray-70 font-mono tabular-nums">{(prob * 100).toFixed(0)}%</span>
                 </div>
               ))}
           </div>
@@ -101,31 +108,29 @@ export function VQEPanel() {
 
   return (
     <div className="space-y-3 text-xs">
-      <div className="text-gray-400 uppercase font-bold text-[10px] tracking-wider">VARIATIONAL QUANTUM EIGENSOLVER</div>
-      <div className="text-gray-600 text-[10px]">
+      <div className="text-[13px] font-semibold">Variational quantum eigensolver</div>
+      <div className="text-gray-50 text-[11px]">
         H₂ ground state energy — hybrid quantum-classical optimization
       </div>
 
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <span className="text-gray-500 w-16">BOND</span>
+          <span className="field-label w-16">Bond</span>
           <input type="range" min={0.3} max={2.5} step={0.01} value={bondLength}
             onChange={(e) => setBondLength(parseFloat(e.target.value))} className="flex-1" />
-          <span className="w-12 text-right">{bondLength.toFixed(2)}Å</span>
+          <span className="w-12 text-right font-mono tabular-nums">{bondLength.toFixed(2)}Å</span>
         </div>
 
         <div>
-          <span className="text-gray-500">ANSATZ</span>
+          <span className="field-label">Ansatz</span>
           <div className="flex gap-1 mt-1">
             {[
               { value: 'uccsd', label: 'UCCSD' },
-              { value: 'hardware_efficient', label: 'HW-EFF' },
+              { value: 'hardware_efficient', label: 'Hardware-efficient' },
             ].map((opt) => (
               <button key={opt.value}
                 onClick={() => setAnsatz(opt.value as typeof ansatz)}
-                className={`flex-1 py-1 border font-bold ${
-                  ansatz === opt.value ? 'border-accent bg-accent text-white' : 'border-qborder hover:border-accent'
-                }`}>
+                className={toggleClass(ansatz === opt.value)}>
                 {opt.label}
               </button>
             ))}
@@ -133,47 +138,47 @@ export function VQEPanel() {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-gray-500 w-16">ITERS</span>
+          <span className="field-label w-16">Iterations</span>
           <input type="range" min={50} max={300} step={10} value={maxIter}
             onChange={(e) => setMaxIter(parseInt(e.target.value))} className="flex-1" />
-          <span className="w-8 text-right">{maxIter}</span>
+          <span className="w-8 text-right font-mono tabular-nums">{maxIter}</span>
         </div>
       </div>
 
       <button onClick={() => mutation.mutate()} disabled={mutation.isPending}
-        className="w-full py-2 bg-accent text-white font-bold uppercase disabled:bg-gray-200 disabled:text-gray-400">
-        {mutation.isPending ? 'OPTIMIZING...' : 'FIND GROUND STATE'}
+        className="btn-primary w-full py-2">
+        {mutation.isPending ? 'Optimizing…' : 'Find ground state'}
       </button>
 
       {result && (
-        <div className="space-y-2 pt-2 border-t border-gray-200">
+        <div className="space-y-2 pt-2 border-t border-line">
           <div className="flex justify-between">
-            <span className="text-gray-500">VQE ENERGY</span>
-            <span className="font-bold">{result.ground_energy.toFixed(6)} Ha</span>
+            <span className="text-gray-50">VQE energy</span>
+            <span className="font-mono font-medium tabular-nums">{result.ground_energy.toFixed(6)} Ha</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">EXACT</span>
-            <span>{result.exact_energy.toFixed(6)} Ha</span>
+            <span className="text-gray-50">Exact</span>
+            <span className="font-mono tabular-nums">{result.exact_energy.toFixed(6)} Ha</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">ERROR</span>
-            <span>{(result.error * 1000).toFixed(3)} mHa</span>
+            <span className="text-gray-50">Error</span>
+            <span className="font-mono tabular-nums">{(result.error * 1000).toFixed(3)} mHa</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">CHEM ACC</span>
-            <span className={result.chemical_accuracy ? 'text-accent font-bold' : 'text-gray-500'}>
-              {result.chemical_accuracy ? 'YES (< 1.6 mHa)' : 'NO'}
+            <span className="text-gray-50">Chemical accuracy</span>
+            <span className={result.chemical_accuracy ? 'text-green-50 font-medium' : 'text-gray-50'}>
+              {result.chemical_accuracy ? 'Yes (< 1.6 mHa)' : 'No'}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">ITERATIONS</span>
-            <span>{result.iterations}</span>
+            <span className="text-gray-50">Iterations</span>
+            <span className="font-mono tabular-nums">{result.iterations}</span>
           </div>
 
           {/* Convergence mini-chart */}
           <div className="pt-2">
-            <div className="text-gray-500 mb-1">CONVERGENCE</div>
-            <div className="h-16 flex items-end gap-[1px]">
+            <div className="text-gray-50 mb-1">Convergence</div>
+            <div className="h-16 flex items-end gap-[1px] stat p-1">
               {result.convergence_history
                 .filter((_, i) => i % Math.max(1, Math.floor(result.convergence_history.length / 40)) === 0)
                 .map((e, i, arr) => {
@@ -182,13 +187,15 @@ export function VQEPanel() {
                   const range = max - min || 1;
                   const h = ((e - min) / range) * 100;
                   return (
-                    <div key={i} className="flex-1 bg-gray-700" style={{ height: `${100 - h}%` }}>
-                      <div className="w-full bg-white" style={{ height: `${h}%` }} />
-                    </div>
+                    <div
+                      key={i}
+                      className="flex-1 bg-blue-60"
+                      style={{ height: `${Math.max(100 - h, 4)}%` }}
+                    />
                   );
                 })}
             </div>
-            <div className="flex justify-between text-gray-600 text-[9px] mt-1">
+            <div className="flex justify-between text-gray-50 text-[10px] mt-1">
               <span>iter 0</span>
               <span>iter {result.iterations}</span>
             </div>
@@ -227,65 +234,63 @@ export function QAOAPanel() {
 
   return (
     <div className="space-y-3 text-xs">
-      <div className="text-gray-400 uppercase font-bold text-[10px] tracking-wider">QAOA — MAXCUT</div>
-      <div className="text-gray-600 text-[10px]">
+      <div className="text-[13px] font-semibold">QAOA — MaxCut</div>
+      <div className="text-gray-50 text-[11px]">
         Quantum optimization for graph partitioning
       </div>
 
       <div className="space-y-2">
         <div>
-          <span className="text-gray-500">GRAPH</span>
+          <span className="field-label">Graph</span>
           <div className="flex gap-1 mt-1">
             {Object.entries(PRESET_GRAPHS).map(([key, val]) => (
               <button key={key}
                 onClick={() => { setGraph(key as keyof typeof PRESET_GRAPHS); setResult(null); }}
-                className={`flex-1 py-1 border font-bold ${
-                  graph === key ? 'border-accent bg-accent text-white' : 'border-qborder hover:border-accent'
-                }`}>
+                className={toggleClass(graph === key)}>
                 {val.label}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="text-gray-600 text-[10px]">
+        <div className="text-gray-50 text-[11px]">
           {g.n} vertices, {g.edges.length} edges
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-gray-500 w-16">LAYERS</span>
+          <span className="field-label w-16">Layers</span>
           <input type="range" min={1} max={4} value={pLayers}
             onChange={(e) => setPLayers(parseInt(e.target.value))} className="flex-1" />
-          <span className="w-8 text-right">p={pLayers}</span>
+          <span className="w-8 text-right font-mono tabular-nums">p={pLayers}</span>
         </div>
       </div>
 
       <button onClick={() => mutation.mutate()} disabled={mutation.isPending}
-        className="w-full py-2 bg-accent text-white font-bold uppercase disabled:bg-gray-200 disabled:text-gray-400">
-        {mutation.isPending ? 'OPTIMIZING...' : 'RUN QAOA'}
+        className="btn-primary w-full py-2">
+        {mutation.isPending ? 'Optimizing…' : 'Run QAOA'}
       </button>
 
       {result && (
-        <div className="space-y-2 pt-2 border-t border-gray-200">
+        <div className="space-y-2 pt-2 border-t border-line">
           <div className="flex justify-between">
-            <span className="text-gray-500">BEST CUT</span>
-            <span className="font-bold">|{result.best_bitstring}⟩ = {result.best_cost.toFixed(1)}</span>
+            <span className="text-gray-50">Best cut</span>
+            <span className="font-mono font-medium tabular-nums">|{result.best_bitstring}⟩ = {result.best_cost.toFixed(1)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">EXACT</span>
-            <span>|{result.exact_solution}⟩ = {result.exact_cost.toFixed(1)}</span>
+            <span className="text-gray-50">Exact</span>
+            <span className="font-mono tabular-nums">|{result.exact_solution}⟩ = {result.exact_cost.toFixed(1)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">APPROX RATIO</span>
-            <span className="font-bold">{(result.approximation_ratio * 100).toFixed(1)}%</span>
+            <span className="text-gray-50">Approx. ratio</span>
+            <span className="font-mono font-medium tabular-nums">{(result.approximation_ratio * 100).toFixed(1)}%</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">γ*</span>
-            <span>{result.optimal_gammas.map(g => g.toFixed(2)).join(', ')}</span>
+            <span className="text-gray-50">γ*</span>
+            <span className="font-mono tabular-nums">{result.optimal_gammas.map(g => g.toFixed(2)).join(', ')}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">β*</span>
-            <span>{result.optimal_betas.map(b => b.toFixed(2)).join(', ')}</span>
+            <span className="text-gray-50">β*</span>
+            <span className="font-mono tabular-nums">{result.optimal_betas.map(b => b.toFixed(2)).join(', ')}</span>
           </div>
         </div>
       )}
@@ -316,25 +321,23 @@ export function QECPanel() {
 
   return (
     <div className="space-y-3 text-xs">
-      <div className="text-gray-400 uppercase font-bold text-[10px] tracking-wider">QUANTUM ERROR CORRECTION</div>
-      <div className="text-gray-600 text-[10px]">
+      <div className="text-[13px] font-semibold">Quantum error correction</div>
+      <div className="text-gray-50 text-[11px]">
         Protect quantum information against decoherence
       </div>
 
       <div className="space-y-2">
         <div>
-          <span className="text-gray-500">CODE</span>
+          <span className="field-label">Code</span>
           <div className="flex gap-1 mt-1">
             {[
-              { value: 'bit_flip', label: '3Q BIT' },
-              { value: 'phase_flip', label: '3Q PHASE' },
-              { value: 'shor', label: 'SHOR 9Q' },
+              { value: 'bit_flip', label: '3q bit' },
+              { value: 'phase_flip', label: '3q phase' },
+              { value: 'shor', label: 'Shor 9q' },
             ].map((opt) => (
               <button key={opt.value}
                 onClick={() => { setCode(opt.value as typeof code); setResult(null); }}
-                className={`flex-1 py-1 border font-bold ${
-                  code === opt.value ? 'border-accent bg-accent text-white' : 'border-qborder hover:border-accent'
-                }`}>
+                className={toggleClass(code === opt.value)}>
                 {opt.label}
               </button>
             ))}
@@ -343,26 +346,22 @@ export function QECPanel() {
 
         <div className="flex gap-2">
           <div className="flex-1">
-            <span className="text-gray-500">LOGICAL</span>
+            <span className="field-label">Logical</span>
             <div className="flex gap-1 mt-1">
               {(['0', '1'] as const).map((s) => (
                 <button key={s} onClick={() => setLogicalState(s)}
-                  className={`flex-1 py-1 border font-bold ${
-                    logicalState === s ? 'border-accent bg-accent text-white' : 'border-gray-600'
-                  }`}>
+                  className={toggleClass(logicalState === s)}>
                   |{s}⟩
                 </button>
               ))}
             </div>
           </div>
           <div className="flex-1">
-            <span className="text-gray-500">ERROR</span>
+            <span className="field-label">Error</span>
             <div className="flex gap-1 mt-1">
               {(['X', 'Z', 'none'] as const).map((e) => (
                 <button key={e} onClick={() => setErrorType(e)}
-                  className={`flex-1 py-1 border font-bold ${
-                    errorType === e ? 'border-accent bg-accent text-white' : 'border-gray-600'
-                  }`}>
+                  className={toggleClass(errorType === e)}>
                   {e === 'none' ? '—' : e}
                 </button>
               ))}
@@ -371,48 +370,48 @@ export function QECPanel() {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-gray-500 w-16">ERR Q#</span>
+          <span className="field-label w-16">Error qubit</span>
           <input type="range" min={0} max={maxQubit} value={Math.min(errorQubit, maxQubit)}
             onChange={(e) => setErrorQubit(parseInt(e.target.value))} className="flex-1" />
-          <span className="w-8 text-right">{Math.min(errorQubit, maxQubit)}</span>
+          <span className="w-8 text-right font-mono tabular-nums">{Math.min(errorQubit, maxQubit)}</span>
         </div>
       </div>
 
       <button onClick={() => mutation.mutate()} disabled={mutation.isPending}
-        className="w-full py-2 bg-accent text-white font-bold uppercase disabled:bg-gray-200 disabled:text-gray-400">
-        {mutation.isPending ? 'RUNNING...' : 'TEST CODE'}
+        className="btn-primary w-full py-2">
+        {mutation.isPending ? 'Running…' : 'Test code'}
       </button>
 
       {result && (
-        <div className="space-y-2 pt-2 border-t border-gray-200">
-          <div className="text-gray-400 font-bold">{result.code_name.toUpperCase()}</div>
+        <div className="space-y-2 pt-2 border-t border-line">
+          <div className="font-medium">{result.code_name}</div>
           <div className="grid grid-cols-2 gap-2">
-            <div className="border border-gray-200 p-2">
-              <div className="text-gray-600">PHYSICAL</div>
-              <div className="font-bold">{result.n_physical}Q</div>
+            <div className="stat p-2 text-center">
+              <div className="text-gray-50">Physical</div>
+              <div className="font-mono font-medium tabular-nums">{result.n_physical}q</div>
             </div>
-            <div className="border border-gray-200 p-2">
-              <div className="text-gray-600">LOGICAL</div>
-              <div className="font-bold">{result.n_logical}Q</div>
+            <div className="stat p-2 text-center">
+              <div className="text-gray-50">Logical</div>
+              <div className="font-mono font-medium tabular-nums">{result.n_logical}q</div>
             </div>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">ERROR</span>
-            <span>{result.error_type}</span>
+            <span className="text-gray-50">Error</span>
+            <span className="font-mono">{result.error_type}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">SYNDROME</span>
+            <span className="text-gray-50">Syndrome</span>
             <span className="font-mono">{result.syndrome}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">CORRECTED</span>
-            <span className={`font-bold ${result.corrected ? 'text-white' : 'text-gray-500'}`}>
-              {result.corrected ? 'YES' : 'NO'}
+            <span className="text-gray-50">Corrected</span>
+            <span className={result.corrected ? 'text-green-50 font-medium' : 'text-gray-50'}>
+              {result.corrected ? 'Yes' : 'No'}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">FIDELITY</span>
-            <span className="font-bold">{(result.fidelity * 100).toFixed(1)}%</span>
+            <span className="text-gray-50">Fidelity</span>
+            <span className="font-mono font-medium tabular-nums">{(result.fidelity * 100).toFixed(1)}%</span>
           </div>
         </div>
       )}
