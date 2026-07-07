@@ -1,11 +1,23 @@
 # Quantum Circuit Simulator
 
-A production-quality quantum circuit simulator with a Python/FastAPI backend and React/TypeScript/Three.js frontend. All quantum operations are implemented from scratch using NumPy - no Qiskit or external quantum libraries.
+[![CI](https://github.com/AbdelRahm4n/quantum-sim/actions/workflows/ci.yml/badge.svg)](https://github.com/AbdelRahm4n/quantum-sim/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
+![Tests](https://img.shields.io/badge/tests-105%20passing-brightgreen)
+![React](https://img.shields.io/badge/React-18-61dafb)
+
+A production-quality quantum circuit simulator with a Python/FastAPI backend and React/TypeScript/Three.js frontend.
+
+![Demo: build a circuit, run it, inspect histogram, amplitudes, and Bloch sphere](docs/screenshots/demo.gif)
+
+| Bell state, 1024 shots in a few ms | Live WebSocket step-through | VQE finds the H2 ground state to 0.000 mHa |
+|---|---|---|
+| ![Bell histogram](docs/screenshots/bell-histogram.png) | ![Step-through](docs/screenshots/step-through.png) | ![VQE](docs/screenshots/vqe-h2.png) | All quantum operations are implemented from scratch using NumPy - no Qiskit or external quantum libraries.
 
 ## Features
 
 ### Core Quantum Engine
-- **State Vector Simulation**: Up to 20 qubits (~1M amplitudes)
+- **State Vector Simulation**: hard cap of 20 qubits (~1M amplitudes), comfortable to ~14 qubits interactively
+- **Tensor-Contraction Kernel**: gates are applied by contracting only their axes of the state tensor (O(2^n) per gate), not by building a dense 2^n x 2^n matrix
 - **Density Matrix Mode**: For mixed states and noise simulation
 - **All Standard Gates**: H, X, Y, Z, S, T, CNOT, CZ, Toffoli, rotations, and more
 - **Parameterized Gates**: Rx, Ry, Rz, U3 with arbitrary angles
@@ -15,7 +27,7 @@ A production-quality quantum circuit simulator with a Python/FastAPI backend and
 ### Frontend
 - **Drag-and-Drop Circuit Builder**: Intuitive gate placement
 - **Real-time Bloch Sphere**: 3D visualization using Three.js
-- **State Vector Display**: Amplitude bars with probability
+- **State Vector Display**: Amplitude bars with probability and real phase
 - **Measurement Histogram**: Result distribution
 - **Export to OpenQASM**: Industry-standard format
 
@@ -228,10 +240,10 @@ pytest tests/ -v
 
 ## Performance
 
-- State vector: Up to 20 qubits (1M amplitudes, ~16MB)
-- Density matrix: Up to 14 qubits (for mixed states)
-- Gate application: O(2^n) per gate
-- Sparse optimization for circuits with >15 qubits (planned)
+- State vector: hard cap of 20 qubits (1M amplitudes, ~16 MB). Practical interactive range is ~14 qubits; the per-qubit Bloch and entanglement views trace over the full state and become the limiter beyond that.
+- Density matrix: up to 14 qubits (for mixed states).
+- Gate application: O(2^n) per gate. The state is reshaped into an n-index tensor and only the gate's axes are contracted (via `np.tensordot`), avoiding the O(4^n) cost of materializing a full 2^n x 2^n gate matrix.
+- Sampling: terminal measurements are drawn once from the final distribution instead of re-simulating the circuit for every shot.
 
 ## Technology Stack
 
