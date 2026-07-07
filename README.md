@@ -2,7 +2,8 @@
 
 [![CI](https://github.com/AbdelRahm4n/quantum-sim/actions/workflows/ci.yml/badge.svg)](https://github.com/AbdelRahm4n/quantum-sim/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
-![Tests](https://img.shields.io/badge/tests-105%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-169%20passing-brightgreen)
+![Qiskit](https://img.shields.io/badge/oracle--verified-vs%20Qiskit-6929c4)
 ![React](https://img.shields.io/badge/React-18-61dafb)
 
 A production-quality quantum circuit simulator with a Python/FastAPI backend and React/TypeScript/Three.js frontend.
@@ -236,6 +237,15 @@ result = run_circuit(qc, shots=1000, noise_model=noise)
 ```bash
 cd backend
 pytest tests/ -v
+```
+
+### Cross-validation against Qiskit
+
+The engine is oracle-verified: `tests/test_qiskit_validation.py` runs every gate in the library (on every qubit placement) plus 30 randomized deep circuits on both this simulator and Qiskit's `Statevector`, asserting the final states agree to fidelity 1 within 1e-9. The suite runs in CI and skips gracefully if qiskit is not installed locally.
+
+```bash
+pip install qiskit
+pytest tests/test_qiskit_validation.py -v
 ```
 
 ## Performance
