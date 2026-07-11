@@ -3,7 +3,7 @@
 [![CI](https://github.com/aibrahm/quantum-sim/actions/workflows/ci.yml/badge.svg)](https://github.com/aibrahm/quantum-sim/actions/workflows/ci.yml)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
-![Tests](https://img.shields.io/badge/tests-169%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-195%20passing-brightgreen)
 ![Qiskit](https://img.shields.io/badge/oracle--verified-vs%20Qiskit-6929c4)
 ![React](https://img.shields.io/badge/React-18-61dafb)
 
@@ -25,7 +25,7 @@ All quantum operations are implemented from scratch using NumPy. No Qiskit or ex
 - **Density Matrix Mode**: For mixed states and noise simulation
 - **All Standard Gates**: H, X, Y, Z, S, T, CNOT, CZ, Toffoli, rotations, and more
 - **Parameterized Gates**: Rx, Ry, Rz, U3 with arbitrary angles
-- **Projective Measurement**: With state collapse and sampling
+- **Projective Measurement**: X, Y, or Z basis, with correct state collapse and sampling
 - **Noise Channels**: Depolarizing, amplitude damping, phase damping via Kraus operators
 
 ### Frontend
