@@ -4,10 +4,8 @@ Transfers quantum state using entanglement and classical communication.
 """
 
 import numpy as np
-from typing import Tuple
 from ..circuit.circuit import QuantumCircuit
-from ..circuit.executor import run_circuit, get_statevector, ExecutionResult
-from ..core.state_vector import StateVector
+from ..circuit.executor import run_circuit, get_statevector
 
 
 def teleportation_circuit(theta: float = 0, phi: float = 0) -> QuantumCircuit:

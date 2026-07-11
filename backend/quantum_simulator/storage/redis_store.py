@@ -5,8 +5,6 @@ Redis storage layer for circuit persistence.
 import json
 import uuid
 from typing import Optional, Dict, Any, List
-from dataclasses import dataclass
-import asyncio
 
 try:
     import redis.asyncio as redis
@@ -14,7 +12,6 @@ except ImportError:
     redis = None
 
 from ..circuit.circuit import QuantumCircuit
-from ..circuit.executor import StateSnapshot
 
 
 class CircuitStore:

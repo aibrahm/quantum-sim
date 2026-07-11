@@ -5,13 +5,11 @@ Reference: Shor, Physical Review A 52(4), R2493 (1995);
 Steane, Physical Review Letters 77(5), 793 (1996)
 """
 
-import numpy as np
-from typing import List, Optional, Tuple, Dict, Any
+from typing import List, Dict, Any
 from dataclasses import dataclass
 
 from ..circuit.circuit import QuantumCircuit
-from ..circuit.executor import run_circuit, get_statevector, ExecutionResult
-from ..core.state_vector import StateVector
+from ..circuit.executor import get_statevector
 
 
 @dataclass

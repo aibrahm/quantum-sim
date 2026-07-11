@@ -5,14 +5,12 @@ Reference: Farhi, Goldstone, Gutmann, arXiv:1411.4028 (2014)
 """
 
 import numpy as np
-from typing import List, Optional, Tuple, Dict, Any
+from typing import List, Optional, Tuple
 from dataclasses import dataclass, field
 from scipy.optimize import minimize
-from itertools import combinations
 
 from ..circuit.circuit import QuantumCircuit
-from ..circuit.executor import run_circuit, get_statevector, ExecutionResult
-from ..core.state_vector import StateVector
+from ..circuit.executor import run_circuit, get_statevector
 
 
 @dataclass

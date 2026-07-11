@@ -4,10 +4,9 @@ The quantum analog of the discrete Fourier transform.
 """
 
 import numpy as np
-from typing import Optional, List
+from typing import List
 from ..circuit.circuit import QuantumCircuit
 from ..circuit.executor import get_statevector
-from ..core.state_vector import StateVector
 
 
 def qft_circuit(n_qubits: int, do_swaps: bool = True) -> QuantumCircuit:

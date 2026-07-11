@@ -32,3 +32,7 @@ testpaths = ["tests"]
 
 [tool.setuptools.packages.find]
 where = ["."]
+
+[tool.ruff.lint.per-file-ignores]
+# Package __init__ files re-export the public API
+"**/__init__.py" = ["F401", "F403"]

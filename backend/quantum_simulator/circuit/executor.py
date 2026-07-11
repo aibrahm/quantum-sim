@@ -11,9 +11,8 @@ from enum import Enum
 from .circuit import QuantumCircuit, GateOperation, OperationType
 from ..core.state_vector import StateVector
 from ..core.density_matrix import DensityMatrix
-from ..core.gates import get_gate, multi_qubit_gate, tensor_gate, H, S, Sdg
+from ..core.gates import get_gate, H, S, Sdg
 from ..core.channels import NoiseModel
-from ..core.measurement import sample, projective_measure, measure_in_basis
 
 
 class ExecutionMode(Enum):

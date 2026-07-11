@@ -1,7 +1,7 @@
 """Utility functions for quantum simulation."""
 
 import numpy as np
-from typing import List, Tuple, Optional, Union
+from typing import List, Tuple, Optional
 from functools import reduce
 
 
@@ -190,7 +190,7 @@ def state_label(index: int, n_qubits: int) -> str:
 
 def embed_operator(op: np.ndarray, qubits: List[int], n_qubits: int) -> np.ndarray:
     """Embed an operator into the full Hilbert space."""
-    from .gates import I, multi_qubit_gate
+    from .gates import multi_qubit_gate
     return multi_qubit_gate(op, qubits, n_qubits)
 
 

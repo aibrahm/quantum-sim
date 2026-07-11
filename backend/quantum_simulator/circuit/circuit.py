@@ -3,8 +3,7 @@ QuantumCircuit - High-level circuit construction API.
 Provides a fluent interface for building quantum circuits.
 """
 
-import numpy as np
-from typing import List, Optional, Dict, Any, Union, Tuple
+from typing import List, Optional, Dict, Any, Union
 from dataclasses import dataclass, field
 from enum import Enum
 import json

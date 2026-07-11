@@ -5,13 +5,12 @@ Reference: Peruzzo et al., Nature Communications 5, 4213 (2014), arXiv:1304.3061
 """
 
 import numpy as np
-from typing import List, Optional, Tuple, Dict, Any, Callable
-from dataclasses import dataclass, field
+from typing import List, Optional, Tuple
+from dataclasses import dataclass
 from scipy.optimize import minimize
 
 from ..circuit.circuit import QuantumCircuit
 from ..circuit.executor import get_statevector
-from ..core.state_vector import StateVector
 
 
 @dataclass

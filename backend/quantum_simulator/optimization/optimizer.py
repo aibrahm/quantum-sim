@@ -4,16 +4,15 @@ Implements gate cancellation, single-qubit fusion, commutation, CX optimization,
 """
 
 import numpy as np
-from typing import List, Dict, Optional, Tuple, Set
-from dataclasses import dataclass, field
+from typing import List, Optional, Tuple
+from dataclasses import dataclass
 from abc import ABC, abstractmethod
-from copy import deepcopy
 
 from ..circuit.circuit import (
     QuantumCircuit, CircuitOperation, GateOperation,
     OperationType
 )
-from ..core.gates import get_gate, is_unitary, GateMatrix
+from ..core.gates import get_gate
 
 
 def _rebuild(original: QuantumCircuit, ops: List[CircuitOperation]) -> QuantumCircuit:

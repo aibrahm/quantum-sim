@@ -2,13 +2,12 @@
 
 import numpy as np
 from typing import List, Optional
-from functools import reduce
 
 # Type alias for gate matrices
 GateMatrix = np.ndarray
 
 # Identity gate
-I: GateMatrix = np.array([
+I: GateMatrix = np.array([  # noqa: E741 (identity gate)
     [1, 0],
     [0, 1]
 ], dtype=complex)
@@ -293,7 +292,7 @@ def Rzz(theta: float) -> GateMatrix:
 
 
 # Toffoli gate (CCNOT)
-TOFFOLI: GateMatrix = np.array([
+TOFFOLI: GateMatrix = np.array([  # noqa: E741 (identity gate)
     [1, 0, 0, 0, 0, 0, 0, 0],
     [0, 1, 0, 0, 0, 0, 0, 0],
     [0, 0, 1, 0, 0, 0, 0, 0],

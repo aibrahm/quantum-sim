@@ -4,10 +4,10 @@ import numpy as np
 from typing import List, Tuple, Optional, Union, Dict
 from dataclasses import dataclass
 
-from .gates import GateMatrix, multi_qubit_gate, tensor_gate, apply_gate_to_statevector, I
+from .gates import GateMatrix, multi_qubit_gate, apply_gate_to_statevector
 from .utils import (
     tensor_product, partial_trace_simple, state_to_bloch,
-    normalize_state, computational_basis, projector, outer_product
+    normalize_state, outer_product
 )
 
 

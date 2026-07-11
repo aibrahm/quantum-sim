@@ -4,7 +4,7 @@ Includes projective measurements, POVM, and sampling utilities.
 """
 
 import numpy as np
-from typing import List, Tuple, Dict, Optional, Union
+from typing import List, Tuple, Dict, Optional
 from dataclasses import dataclass
 
 

@@ -7,14 +7,10 @@ STOC 2019, arXiv:1806.01838; Low & Chuang, PRL 118, 010501 (2017).
 
 import numpy as np
 from typing import List, Tuple, Optional, Callable, Dict, Any
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from scipy.optimize import minimize
 from scipy.linalg import svd, expm
 
-from ..circuit.circuit import QuantumCircuit
-from ..circuit.executor import run_circuit, get_statevector, ExecutionResult
-from ..core.state_vector import StateVector
-from ..core.gates import GateMatrix
 
 
 @dataclass
@@ -156,11 +152,6 @@ class BlockEncoding:
 
         A_norm = A / alpha
 
-        U_svd, S, Vh = svd(A_norm, full_matrices=True)
-        S_clamped = np.clip(S, -1, 1)
-        C = np.diag(np.sqrt(np.maximum(0, 1 - S_clamped ** 2)))
-
-        m = min(A.shape)
         top_left = A_norm
         complement = np.eye(n, dtype=complex) - A_norm @ A_norm.conj().T
         eigvals, eigvecs = np.linalg.eigh(complement)
@@ -325,13 +316,6 @@ def qsvt_search(n_qubits: int, marked_fraction: float = 0.25, degree: int = None
 
     angles = find_sign_function_angles(degree, kappa=3.0)
     n_marked = max(1, int(N * marked_fraction))
-    diag = np.ones(N)
-    diag[:n_marked] = -1
-    marking_op = np.diag(diag)
-
-    psi = np.ones(N, dtype=complex) / np.sqrt(N)
-    amplified = marking_op @ psi
-    prob_marked = float(np.sum(np.abs(amplified[:n_marked]) ** 2))
 
     from ..algorithms.grover import optimal_iterations
     grover_iters = optimal_iterations(n_qubits, n_marked)
@@ -368,7 +352,6 @@ def qsvt_phase_estimation(
     for target_bin in range(n_bins):
         target_phase = target_bin / n_bins
 
-        angles = find_threshold_angles(degree, threshold=target_phase)
         estimated_phases.append(target_phase)
 
     phase_resolution = 1.0 / n_bins

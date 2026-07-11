@@ -9,8 +9,7 @@ from typing import List, Optional, Tuple, Dict, Any
 from scipy.linalg import expm
 
 from ..circuit.circuit import QuantumCircuit
-from ..circuit.executor import run_circuit, get_statevector, ExecutionResult
-from ..core.state_vector import StateVector
+from ..circuit.executor import run_circuit
 from .qft import inverse_qft_on_register
 
 

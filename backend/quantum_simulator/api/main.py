@@ -3,21 +3,18 @@ FastAPI application for Quantum Circuit Simulator.
 """
 
 import asyncio
-import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Dict, List, Optional
 import json
 import numpy as np
 
 from .models import (
     CircuitCreateRequest, CircuitUpdateRequest, CircuitResponse,
     ExecutionRequest, ExecutionResultModel, StateVectorResponse,
-    DensityMatrixResponse, CircuitStatsResponse, BlochVector,
-    StateSnapshotModel, ErrorResponse, OpenQASMExport,
-    GroverRequest, GroverResponse, VQERequest, VQEResponse,
-    QFTRequest, QFTResponse, TeleportationRequest, TeleportationResponse,
+    CircuitStatsResponse, BlochVector,
+    StateSnapshotModel, OpenQASMExport,
+    GroverRequest, GroverResponse, VQERequest, QFTRequest, QFTResponse, TeleportationRequest, TeleportationResponse,
     DeutschJozsaRequest, DeutschJozsaResponse,
     QPERequest, QPEResponse,
     VQEResultModel,
@@ -25,12 +22,11 @@ from .models import (
     QECRequest, QECResponse,
     EntanglementAnalysisResponse,
     OptimizationRequest, OptimizationResponse,
-    QSVTDemoResponse,
 )
-from ..storage.redis_store import get_store, close_store, CircuitStore
+from ..storage.redis_store import get_store, close_store
 from ..circuit.circuit import QuantumCircuit, OperationType
-from ..circuit.executor import Executor, run_circuit, get_statevector, get_density_matrix
-from ..core.channels import NoiseModel, depolarizing_channel, amplitude_damping, phase_damping
+from ..circuit.executor import Executor, run_circuit, get_statevector
+from ..core.channels import NoiseModel
 from ..analysis.circuit_stats import circuit_depth, gate_count, two_qubit_gate_count
 from ..algorithms import (
     run_grover, optimal_iterations,
@@ -40,7 +36,7 @@ from ..algorithms import (
     run_qpe,
     run_vqe, run_h2_vqe, PauliHamiltonian, PauliTerm,
     run_qaoa, QAOAProblem, run_maxcut_qaoa,
-    run_bit_flip_code, run_phase_flip_code, run_shor_code, compare_codes,
+    run_bit_flip_code, run_phase_flip_code, run_shor_code,
 )
 from ..optimization import optimize_circuit
 from ..analysis.entanglement import full_entanglement_analysis

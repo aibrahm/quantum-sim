@@ -3,8 +3,7 @@
 import numpy as np
 from typing import List, Optional, Callable, Tuple
 from ..circuit.circuit import QuantumCircuit
-from ..circuit.executor import run_circuit, get_statevector, ExecutionResult
-from ..core.state_vector import StateVector
+from ..circuit.executor import run_circuit, ExecutionResult
 
 
 def optimal_iterations(n_qubits: int, n_marked: int = 1) -> int:

@@ -3,7 +3,7 @@ Pydantic models for API request/response schemas.
 """
 
 from pydantic import BaseModel, Field
-from typing import List, Dict, Optional, Any, Union, Literal
+from typing import List, Dict, Optional, Any, Literal
 from enum import Enum
 
 
@@ -18,7 +18,7 @@ class SimulationMode(str, Enum):
 
 class GateName(str, Enum):
     # Single-qubit gates
-    I = "I"
+    I = "I"  # noqa: E741 (identity gate)
     X = "X"
     Y = "Y"
     Z = "Z"

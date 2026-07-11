@@ -8,8 +8,6 @@ from typing import List, Tuple, Optional, Dict, Any
 from dataclasses import dataclass
 
 from ..core.state_vector import StateVector
-from ..core.density_matrix import DensityMatrix
-from ..core.utils import partial_trace_simple
 
 
 @dataclass

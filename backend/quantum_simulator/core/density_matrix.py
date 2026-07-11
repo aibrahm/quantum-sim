@@ -7,10 +7,9 @@ import numpy as np
 from typing import List, Tuple, Optional, Dict, Union
 from dataclasses import dataclass
 
-from .gates import GateMatrix, multi_qubit_gate, tensor_gate, apply_gate_to_statevector, I
+from .gates import GateMatrix, multi_qubit_gate, apply_gate_to_statevector
 from .utils import (
-    tensor_product, partial_trace_simple, state_to_bloch,
-    is_hermitian, is_positive_semidefinite
+    partial_trace_simple, state_to_bloch
 )
 
 
@@ -157,7 +156,6 @@ class DensityMatrix:
             return cls.from_state_vector(ground_state)
 
         beta = 1.0 / temperature
-        exp_H = np.diag(np.exp(-beta * np.linalg.eigvalsh(hamiltonian)))
 
         # Diagonalize H
         eigenvalues, U = np.linalg.eigh(hamiltonian)

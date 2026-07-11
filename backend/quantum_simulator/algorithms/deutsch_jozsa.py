@@ -3,10 +3,9 @@ Deutsch-Jozsa Algorithm Implementation.
 Determines if a function is constant or balanced in a single query.
 """
 
-import numpy as np
-from typing import Literal, List
+from typing import Literal
 from ..circuit.circuit import QuantumCircuit
-from ..circuit.executor import run_circuit, ExecutionResult
+from ..circuit.executor import run_circuit
 
 
 def deutsch_jozsa_circuit(
