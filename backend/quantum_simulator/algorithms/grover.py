@@ -14,6 +14,42 @@ def optimal_iterations(n_qubits: int, n_marked: int = 1) -> int:
     return int(np.floor(np.pi / 4 * np.sqrt(N / M)))
 
 
+def _mcp(qc: QuantumCircuit, theta: float, controls: List[int], target: int) -> None:
+    """Multi-controlled phase gate, decomposed recursively without ancillas."""
+    if not controls:
+        qc.p(theta, target)
+    elif len(controls) == 1:
+        qc.cp(theta, controls[0], target)
+    else:
+        qc.cp(theta / 2, controls[-1], target)
+        _mcx(qc, controls[:-1], controls[-1])
+        qc.cp(-theta / 2, controls[-1], target)
+        _mcx(qc, controls[:-1], controls[-1])
+        _mcp(qc, theta / 2, controls[:-1], target)
+
+
+def _mcx(qc: QuantumCircuit, controls: List[int], target: int) -> None:
+    """Multi-controlled X gate via H-conjugated multi-controlled phase."""
+    if not controls:
+        qc.x(target)
+    elif len(controls) == 1:
+        qc.cx(controls[0], target)
+    elif len(controls) == 2:
+        qc.ccx(controls[0], controls[1], target)
+    else:
+        qc.h(target)
+        _mcp(qc, np.pi, controls, target)
+        qc.h(target)
+
+
+def _mcz(qc: QuantumCircuit, qubits: List[int]) -> None:
+    """Multi-controlled Z: phase flip on |11...1> over the given qubits."""
+    if len(qubits) == 1:
+        qc.z(qubits[0])
+    else:
+        _mcp(qc, np.pi, qubits[:-1], qubits[-1])
+
+
 def create_oracle(n_qubits: int, marked_states: List[int]) -> QuantumCircuit:
     """Create a phase oracle that flips marked states."""
     oracle = QuantumCircuit(n_qubits, name="oracle")
@@ -27,23 +63,7 @@ def create_oracle(n_qubits: int, marked_states: List[int]) -> QuantumCircuit:
                 oracle.x(i)
 
         # Multi-controlled Z gate (phase flip on |11...1⟩)
-        if n_qubits == 1:
-            oracle.z(0)
-        elif n_qubits == 2:
-            oracle.cz(0, 1)
-        elif n_qubits == 3:
-            # CCZ using Toffoli and ancilla-free decomposition
-            oracle.h(2)
-            oracle.ccx(0, 1, 2)
-            oracle.h(2)
-        else:
-            # For more qubits, use multi-controlled Z decomposition
-            # This is a simplified version - full implementation would use
-            # proper multi-controlled gate decomposition
-            oracle.h(n_qubits - 1)
-            for i in range(n_qubits - 2):
-                oracle.ccx(i, i + 1, n_qubits - 1)
-            oracle.h(n_qubits - 1)
+        _mcz(oracle, list(range(n_qubits)))
 
         # Undo X gates
         for i, bit in enumerate(bits):
@@ -66,19 +86,7 @@ def create_diffusion(n_qubits: int) -> QuantumCircuit:
         diffusion.x(i)
 
     # Multi-controlled Z (marks |11...1⟩ which is |00...0⟩ after X gates)
-    if n_qubits == 1:
-        diffusion.z(0)
-    elif n_qubits == 2:
-        diffusion.cz(0, 1)
-    elif n_qubits == 3:
-        diffusion.h(2)
-        diffusion.ccx(0, 1, 2)
-        diffusion.h(2)
-    else:
-        diffusion.h(n_qubits - 1)
-        for i in range(n_qubits - 2):
-            diffusion.ccx(i, i + 1, n_qubits - 1)
-        diffusion.h(n_qubits - 1)
+    _mcz(diffusion, list(range(n_qubits)))
 
     # Apply X gates
     for i in range(n_qubits):
