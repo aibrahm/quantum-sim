@@ -10,16 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 #### Research Implementation
-- **QSVT (Quantum Singular Value Transformation)** — implementation of Gilyén, Su, Low, Wiebe (STOC 2019, arXiv:1806.01838), demonstrating how Grover's search, QPE, HHL matrix inversion, and Hamiltonian simulation are unified as polynomial transformations on singular values
+- **QSVT (Quantum Singular Value Transformation)**: implementation of Gilyén, Su, Low, Wiebe (STOC 2019, arXiv:1806.01838), demonstrating how Grover's search, QPE, HHL matrix inversion, and Hamiltonian simulation are unified as polynomial transformations on singular values
 - QSP angle finding via numerical optimization
 - Block encoding construction for arbitrary matrices
 - Demonstration mode showing all four unified algorithms
 
 #### New Algorithms
-- **Quantum Phase Estimation (QPE)** — full implementation with controlled-U^{2^k}, inverse QFT, and Hamiltonian eigenvalue estimation
-- **Variational Quantum Eigensolver (VQE)** — H₂ molecular ground state, transverse Ising model, UCCSD and hardware-efficient ansätze, classical optimizer loop
-- **QAOA** — Quantum Approximate Optimization for MaxCut and Max Independent Set with parameterized circuit layers
-- **Quantum Error Correction** — 3-qubit bit-flip code, 3-qubit phase-flip code, Shor's 9-qubit code with syndrome measurement and correction
+- **Quantum Phase Estimation (QPE)**: full implementation with controlled-U^{2^k}, inverse QFT, and Hamiltonian eigenvalue estimation
+- **Variational Quantum Eigensolver (VQE)**: H₂ molecular ground state, transverse Ising model, UCCSD and hardware-efficient ansätze, classical optimizer loop
+- **QAOA**: Quantum Approximate Optimization for MaxCut and Max Independent Set with parameterized circuit layers
+- **Quantum Error Correction**: 3-qubit bit-flip code, 3-qubit phase-flip code, Shor's 9-qubit code with syndrome measurement and correction
 
 #### Circuit Optimization
 - Multi-pass compiler-style optimizer with 5 passes: gate cancellation, single-qubit fusion (ZYZ decomposition), commutation analysis, CNOT optimization, rotation merging

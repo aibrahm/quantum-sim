@@ -1,18 +1,21 @@
 # Quantum Circuit Simulator
 
-[![CI](https://github.com/AbdelRahm4n/quantum-sim/actions/workflows/ci.yml/badge.svg)](https://github.com/AbdelRahm4n/quantum-sim/actions/workflows/ci.yml)
+[![CI](https://github.com/aibrahm/quantum-sim/actions/workflows/ci.yml/badge.svg)](https://github.com/aibrahm/quantum-sim/actions/workflows/ci.yml)
+![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![Tests](https://img.shields.io/badge/tests-169%20passing-brightgreen)
 ![Qiskit](https://img.shields.io/badge/oracle--verified-vs%20Qiskit-6929c4)
 ![React](https://img.shields.io/badge/React-18-61dafb)
 
-A production-quality quantum circuit simulator with a Python/FastAPI backend and React/TypeScript/Three.js frontend.
+A quantum circuit simulator with a Python/FastAPI backend and React/TypeScript/Three.js frontend.
 
 ![Demo: build a circuit, run it, inspect histogram, amplitudes, and Bloch sphere](docs/screenshots/demo.gif)
 
 | Bell state, 1024 shots in a few ms | Live WebSocket step-through | VQE finds the H2 ground state to 0.000 mHa |
 |---|---|---|
-| ![Bell histogram](docs/screenshots/bell-histogram.png) | ![Step-through](docs/screenshots/step-through.png) | ![VQE](docs/screenshots/vqe-h2.png) | All quantum operations are implemented from scratch using NumPy - no Qiskit or external quantum libraries.
+| ![Bell histogram](docs/screenshots/bell-histogram.png) | ![Step-through](docs/screenshots/step-through.png) | ![VQE](docs/screenshots/vqe-h2.png) |
+
+All quantum operations are implemented from scratch using NumPy. No Qiskit or external quantum libraries.
 
 ## Features
 
@@ -37,13 +40,20 @@ A production-quality quantum circuit simulator with a Python/FastAPI backend and
 - **WebSocket Support**: Real-time step-by-step execution
 - **Redis Storage**: Session persistence for circuits
 
+## Gallery
+
+| Bloch sphere (Three.js) | QSVT research panel | State vector amplitudes |
+|---|---|---|
+| ![Bloch sphere](docs/screenshots/bloch-sphere.png) | ![QSVT panel](docs/screenshots/qsvt.png) | ![State amplitudes](docs/screenshots/state-amplitudes.png) |
+
 ## Quick Start
 
 ### Using Docker (Recommended)
 
 ```bash
 # Clone the repository
-cd quantum-circuit-sim
+git clone https://github.com/aibrahm/quantum-sim.git
+cd quantum-sim
 
 # Start all services
 docker-compose up -d
@@ -85,7 +95,7 @@ npm run dev
 ## Project Structure
 
 ```
-quantum-circuit-sim/
+quantum-sim/
 ├── backend/
 │   ├── quantum_simulator/
 │   │   ├── core/              # Quantum mechanics fundamentals
@@ -277,4 +287,4 @@ MIT License
 
 ## Contributing
 
-Contributions are welcome! Please read our contributing guidelines and submit pull requests.
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) and submit pull requests.

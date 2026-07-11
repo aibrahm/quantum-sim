@@ -5,7 +5,7 @@ Contributions are welcome! This project is a quantum circuit simulator built for
 ## Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/your-username/quantum-circuit-sim.git`
+2. Clone your fork: `git clone https://github.com/your-username/quantum-sim.git`
 3. Create a branch: `git checkout -b feature/your-feature`
 4. Make your changes
 5. Run tests: `cd backend && python -m pytest tests/ -v`
