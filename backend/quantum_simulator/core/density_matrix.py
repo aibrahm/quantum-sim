@@ -7,7 +7,7 @@ import numpy as np
 from typing import List, Tuple, Optional, Dict, Union
 from dataclasses import dataclass
 
-from .gates import GateMatrix, multi_qubit_gate, tensor_gate, I
+from .gates import GateMatrix, multi_qubit_gate, tensor_gate, apply_gate_to_statevector, I
 from .utils import (
     tensor_product, partial_trace_simple, state_to_bloch,
     is_hermitian, is_positive_semidefinite
@@ -187,6 +187,21 @@ class DensityMatrix:
         """Alias for rho property."""
         return self._rho.copy()
 
+    def _conjugate_by(self, op: np.ndarray, qubits: List[int]) -> np.ndarray:
+        """Compute op ρ op† by tensor contraction, without building a 2^n x 2^n operator.
+
+        The flattened ρ is a 2n-qubit vector where column qubit q is overall
+        qubit q and row qubit q is overall qubit q + n, so op contracts the row
+        axes (op ρ) and conj(op) contracts the column axes (ρ op†). This mirrors
+        the state-vector kernel and keeps gate application O(4^n * 2^m) instead
+        of O(4^n) operator construction plus dense matmuls.
+        """
+        n = self._n_qubits
+        flat = self._rho.reshape(-1)
+        flat = apply_gate_to_statevector(flat, op, [q + n for q in qubits], 2 * n)
+        flat = apply_gate_to_statevector(flat, op.conj(), list(qubits), 2 * n)
+        return flat.reshape(self._dim, self._dim)
+
     def apply_gate(self, gate: GateMatrix, qubits: List[int]) -> 'DensityMatrix':
         """
         Apply unitary gate: ρ → U ρ U†.
@@ -202,12 +217,7 @@ class DensityMatrix:
             if q < 0 or q >= self._n_qubits:
                 raise ValueError(f"Qubit {q} out of range")
 
-        if len(qubits) == 1:
-            full_gate = tensor_gate(gate, qubits[0], self._n_qubits)
-        else:
-            full_gate = multi_qubit_gate(gate, qubits, self._n_qubits)
-
-        new_rho = full_gate @ self._rho @ full_gate.conj().T
+        new_rho = self._conjugate_by(gate, qubits)
 
         return DensityMatrix(self._n_qubits, new_rho)
 
@@ -217,12 +227,7 @@ class DensityMatrix:
             if q < 0 or q >= self._n_qubits:
                 raise ValueError(f"Qubit {q} out of range")
 
-        if len(qubits) == 1:
-            full_gate = tensor_gate(gate, qubits[0], self._n_qubits)
-        else:
-            full_gate = multi_qubit_gate(gate, qubits, self._n_qubits)
-
-        self._rho = full_gate @ self._rho @ full_gate.conj().T
+        self._rho = self._conjugate_by(gate, qubits)
 
     def apply_channel(self, kraus_ops: List[np.ndarray], qubits: List[int]) -> 'DensityMatrix':
         """
@@ -238,12 +243,7 @@ class DensityMatrix:
         new_rho = np.zeros_like(self._rho)
 
         for K in kraus_ops:
-            if len(qubits) == 1:
-                full_K = tensor_gate(K, qubits[0], self._n_qubits)
-            else:
-                full_K = multi_qubit_gate(K, qubits, self._n_qubits)
-
-            new_rho += full_K @ self._rho @ full_K.conj().T
+            new_rho += self._conjugate_by(K, qubits)
 
         return DensityMatrix(self._n_qubits, new_rho)
 
@@ -252,12 +252,7 @@ class DensityMatrix:
         new_rho = np.zeros_like(self._rho)
 
         for K in kraus_ops:
-            if len(qubits) == 1:
-                full_K = tensor_gate(K, qubits[0], self._n_qubits)
-            else:
-                full_K = multi_qubit_gate(K, qubits, self._n_qubits)
-
-            new_rho += full_K @ self._rho @ full_K.conj().T
+            new_rho += self._conjugate_by(K, qubits)
 
         self._rho = new_rho
 

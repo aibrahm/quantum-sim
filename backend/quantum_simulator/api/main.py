@@ -2,6 +2,7 @@
 FastAPI application for Quantum Circuit Simulator.
 """
 
+import asyncio
 import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
@@ -218,7 +219,8 @@ async def run_circuit_endpoint(circuit_id: str, request: ExecutionRequest):
                 noise_model.add_readout_error(int(qubit), errors[0], errors[1])
 
     # Execute
-    result = run_circuit(
+    result = await asyncio.to_thread(
+        run_circuit,
         qc,
         shots=request.shots,
         mode=request.mode.value,
@@ -274,7 +276,7 @@ async def get_circuit_state(circuit_id: str):
                 op.operation.params
             )
 
-    sv = get_statevector(qc_copy)
+    sv = await asyncio.to_thread(get_statevector, qc_copy)
 
     bloch_vecs = [
         BlochVector(qubit=i, x=b[0], y=b[1], z=b[2])
@@ -310,7 +312,7 @@ async def get_bloch_vectors(circuit_id: str):
                 op.operation.params
             )
 
-    sv = get_statevector(qc_copy)
+    sv = await asyncio.to_thread(get_statevector, qc_copy)
     bloch_vecs = sv.all_bloch_vectors()
 
     return {
@@ -340,7 +342,7 @@ async def get_probabilities(circuit_id: str):
                 op.operation.params
             )
 
-    sv = get_statevector(qc_copy)
+    sv = await asyncio.to_thread(get_statevector, qc_copy)
     probs = sv.probabilities
 
     return {
@@ -423,7 +425,8 @@ async def run_grover_algorithm(request: GroverRequest):
                 )
 
         # Run Grover's algorithm
-        result, success_prob = run_grover(
+        result, success_prob = await asyncio.to_thread(
+            run_grover,
             n_qubits=n_qubits,
             marked_states=marked_states,
             iterations=iterations,
@@ -448,7 +451,8 @@ async def run_grover_algorithm(request: GroverRequest):
 async def run_deutsch_jozsa_algorithm(request: DeutschJozsaRequest):
     """Run Deutsch-Jozsa algorithm."""
     try:
-        result = run_deutsch_jozsa(
+        result = await asyncio.to_thread(
+            run_deutsch_jozsa,
             n_qubits=request.n_qubits,
             oracle_type=request.oracle_type,
             shots=request.shots
@@ -494,7 +498,7 @@ async def run_qft_algorithm(request: QFTRequest):
         qc.measure_all()
 
         # Run
-        result = run_circuit(qc, shots=request.shots)
+        result = await asyncio.to_thread(run_circuit, qc, shots=request.shots)
 
         return QFTResponse(
             n_qubits=n_qubits,
@@ -512,7 +516,8 @@ async def run_qft_algorithm(request: QFTRequest):
 async def run_teleportation_algorithm(request: TeleportationRequest):
     """Run quantum teleportation demonstration."""
     try:
-        result = run_teleportation(
+        result = await asyncio.to_thread(
+            run_teleportation,
             theta=request.state_theta,
             phi=request.state_phi,
             shots=request.shots
@@ -547,7 +552,7 @@ async def run_qpe_algorithm(request: QPERequest):
         else:
             raise HTTPException(status_code=400, detail="Custom unitaries not yet supported via API")
 
-        result = run_qpe(U, n_precision=request.n_precision, shots=request.shots)
+        result = await asyncio.to_thread(run_qpe, U, n_precision=request.n_precision, shots=request.shots)
 
         return QPEResponse(
             estimated_phases={str(k): v for k, v in result['estimated_phases'].items()},
@@ -570,7 +575,8 @@ async def run_vqe_algorithm(request: VQERequest):
     """Run Variational Quantum Eigensolver."""
     try:
         if request.hamiltonian_type == "h2":
-            result = run_h2_vqe(
+            result = await asyncio.to_thread(
+                run_h2_vqe,
                 bond_length=request.bond_length or 0.735,
                 ansatz_type=request.ansatz,
                 max_iterations=request.max_iterations
@@ -582,7 +588,7 @@ async def run_vqe_algorithm(request: VQERequest):
             terms = [PauliTerm(t['coefficient'], t['paulis']) for t in request.custom_hamiltonian]
             n_qubits = len(terms[0].paulis)
             hamiltonian = PauliHamiltonian(terms=terms, n_qubits=n_qubits)
-            result = run_vqe(hamiltonian, ansatz_type=request.ansatz, max_iterations=request.max_iterations)
+            result = await asyncio.to_thread(run_vqe, hamiltonian, ansatz_type=request.ansatz, max_iterations=request.max_iterations)
 
         return VQEResultModel(
             ground_energy=result.ground_energy,
@@ -610,12 +616,12 @@ async def run_qaoa_algorithm(request: QAOARequest):
         edges = [tuple(e) for e in request.edges]
 
         if request.problem_type == "maxcut":
-            result = run_maxcut_qaoa(request.n_vertices, edges, p=request.p_layers,
-                                     max_iterations=request.max_iterations, shots=request.shots)
+            result = await asyncio.to_thread(run_maxcut_qaoa, request.n_vertices, edges, p=request.p_layers,
+                                             max_iterations=request.max_iterations, shots=request.shots)
         else:
             problem = QAOAProblem.max_independent_set(request.n_vertices, edges)
-            result = run_qaoa(problem, p=request.p_layers,
-                             max_iterations=request.max_iterations, shots=request.shots)
+            result = await asyncio.to_thread(run_qaoa, problem, p=request.p_layers,
+                                             max_iterations=request.max_iterations, shots=request.shots)
 
         return QAOAResponse(
             best_bitstring=result.best_bitstring,
@@ -642,13 +648,13 @@ async def run_qec_algorithm(request: QECRequest):
     """Run Quantum Error Correction demonstration."""
     try:
         if request.code == "bit_flip":
-            result = run_bit_flip_code(request.logical_state, request.error_qubit,
-                                        request.error_type != "none")
+            result = await asyncio.to_thread(run_bit_flip_code, request.logical_state, request.error_qubit,
+                                             request.error_type != "none")
         elif request.code == "phase_flip":
-            result = run_phase_flip_code(request.logical_state, request.error_qubit,
-                                          request.error_type != "none")
+            result = await asyncio.to_thread(run_phase_flip_code, request.logical_state, request.error_qubit,
+                                             request.error_type != "none")
         elif request.code == "shor":
-            result = run_shor_code(request.logical_state, request.error_type, request.error_qubit)
+            result = await asyncio.to_thread(run_shor_code, request.logical_state, request.error_type, request.error_qubit)
         else:
             raise HTTPException(status_code=400, detail=f"Unknown code: {request.code}")
 
@@ -686,8 +692,8 @@ async def analyze_entanglement(circuit_id: str):
         if op.op_type == OperationType.GATE:
             qc_copy._add_gate(op.operation.gate_name, op.operation.qubits, op.operation.params)
 
-    sv = get_statevector(qc_copy)
-    analysis = full_entanglement_analysis(sv)
+    sv = await asyncio.to_thread(get_statevector, qc_copy)
+    analysis = await asyncio.to_thread(full_entanglement_analysis, sv)
 
     return EntanglementAnalysisResponse(**analysis)
 
@@ -705,7 +711,7 @@ async def optimize_circuit_endpoint(circuit_id: str, request: OptimizationReques
     if qc is None:
         raise HTTPException(status_code=404, detail="Circuit not found")
 
-    result = optimize_circuit(qc, iterations=request.iterations)
+    result = await asyncio.to_thread(optimize_circuit, qc, iterations=request.iterations)
 
     # Save optimized circuit
     opt_id = await store.generate_id()
@@ -737,7 +743,7 @@ async def qsvt_demo():
     and Beyond" (STOC 2019, arXiv:1806.01838)
     """
     try:
-        results = demonstrate_qsvt_unification()
+        results = await asyncio.to_thread(demonstrate_qsvt_unification)
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
