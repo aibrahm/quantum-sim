@@ -281,6 +281,40 @@ class TestEntanglement:
         mi = mutual_information(sv, [0])
         assert abs(mi - 2.0) < 1e-10
 
+    def test_pairwise_entanglement_bell_pair(self):
+        """Bell pair should have maximal pairwise concurrence."""
+        from quantum_simulator.core.state_vector import StateVector
+        from quantum_simulator.analysis.entanglement import pairwise_entanglement
+
+        sv = StateVector.bell_state('phi+')
+        ent_map = pairwise_entanglement(sv)
+        assert abs(ent_map[0, 1] - 1.0) < 1e-10
+        assert abs(ent_map[1, 0] - 1.0) < 1e-10
+
+    def test_pairwise_entanglement_product_state(self):
+        """Product state should have zero pairwise entanglement everywhere."""
+        from quantum_simulator.core.state_vector import StateVector
+        from quantum_simulator.analysis.entanglement import pairwise_entanglement
+
+        sv = StateVector(3)  # |000⟩
+        ent_map = pairwise_entanglement(sv)
+        assert np.allclose(ent_map, 0, atol=1e-10)
+
+    def test_pairwise_entanglement_isolates_unentangled_qubit(self):
+        """Bell pair on (0,1) with qubit 2 in |+> must show zero for pairs with 2."""
+        from quantum_simulator.circuit.circuit import QuantumCircuit
+        from quantum_simulator.circuit.executor import get_statevector
+        from quantum_simulator.analysis.entanglement import pairwise_entanglement
+
+        qc = QuantumCircuit(3)
+        qc.h(0).cx(0, 1).h(2)
+        sv = get_statevector(qc)
+
+        ent_map = pairwise_entanglement(sv)
+        assert abs(ent_map[0, 1] - 1.0) < 1e-10
+        assert ent_map[0, 2] < 1e-10
+        assert ent_map[1, 2] < 1e-10
+
 
 # =============================================================================
 # QSVT Tests

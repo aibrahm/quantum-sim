@@ -175,13 +175,18 @@ def entanglement_spectrum(
 
 
 def pairwise_entanglement(state: StateVector) -> np.ndarray:
-    """Pairwise entanglement entropy between all qubit pairs."""
+    """Pairwise concurrence between all qubit pairs.
+
+    Each entry (i, j) is the Wootters concurrence of the two-qubit reduced
+    density matrix of qubits i and j: 1 for a Bell pair, 0 for a product state.
+    """
     n = state.n_qubits
     ent_map = np.zeros((n, n))
 
     for i in range(n):
         for j in range(i + 1, n):
-            ent = entanglement_entropy(state, [i])
+            rho_ij = state.reduced_density_matrix([i, j])
+            ent = concurrence_mixed(rho_ij)
             ent_map[i, j] = ent
             ent_map[j, i] = ent
 

@@ -255,3 +255,57 @@ class TestExecutionResult:
         data = result.to_dict()
         assert data['counts'] == {'0': 100}
         assert data['shots'] == 100
+
+
+class TestBasisMeasurement:
+    """Test measurement in X, Y, and Z bases."""
+
+    def test_plus_state_x_basis_deterministic(self):
+        """Measuring |+> in the X basis yields 0 with probability 1."""
+        qc = QuantumCircuit(1)
+        qc.h(0)
+        qc.measure(0, 0, basis='X')
+
+        result = run_circuit(qc, shots=500)
+        assert result.counts == {'0': 500}
+
+    def test_minus_state_x_basis_deterministic(self):
+        """Measuring |-> in the X basis yields 1 with probability 1."""
+        qc = QuantumCircuit(1)
+        qc.x(0)
+        qc.h(0)
+        qc.measure(0, 0, basis='X')
+
+        result = run_circuit(qc, shots=500)
+        assert result.counts == {'1': 500}
+
+    def test_plus_i_state_y_basis_deterministic(self):
+        """Measuring (|0>+i|1>)/sqrt(2) in the Y basis yields 0 with probability 1."""
+        qc = QuantumCircuit(1)
+        qc.h(0)
+        qc.s(0)
+        qc.measure(0, 0, basis='Y')
+
+        result = run_circuit(qc, shots=500)
+        assert result.counts == {'0': 500}
+
+    def test_zero_state_x_basis_uniform(self):
+        """Measuring |0> in the X basis yields 0 and 1 with equal probability."""
+        qc = QuantumCircuit(1)
+        qc.measure(0, 0, basis='X')
+
+        result = run_circuit(qc, shots=2000)
+        assert abs(result.counts.get('0', 0) / 2000 - 0.5) < 0.1
+
+    def test_mid_circuit_x_basis_post_state(self):
+        """An X basis measurement must collapse to an X eigenstate, not a Z one."""
+        # |+> measured in X gives outcome 0 and leaves |+>; H then maps it to |0>.
+        qc = QuantumCircuit(1)
+        qc.h(0)
+        qc.measure(0, 0, basis='X')
+        qc.h(0)
+        qc.measure(0, 0)
+
+        result = run_circuit(qc, shots=200)
+        assert result.counts == {'0': 200}
+

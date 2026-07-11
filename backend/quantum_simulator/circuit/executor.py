@@ -11,7 +11,7 @@ from enum import Enum
 from .circuit import QuantumCircuit, GateOperation, OperationType
 from ..core.state_vector import StateVector
 from ..core.density_matrix import DensityMatrix
-from ..core.gates import get_gate, multi_qubit_gate, tensor_gate
+from ..core.gates import get_gate, multi_qubit_gate, tensor_gate, H, S, Sdg
 from ..core.channels import NoiseModel
 from ..core.measurement import sample, projective_measure, measure_in_basis
 
@@ -255,17 +255,37 @@ class Executor:
                     self._noise_model.global_noise, [q]
                 )
 
+    def _rotate_basis(self, qubits: List[int], basis: str, undo: bool = False) -> None:
+        """Rotate qubits between the given measurement basis and the Z basis.
+
+        X basis: H maps X eigenstates to Z eigenstates (self-inverse).
+        Y basis: Sdg then H maps Y eigenstates to Z eigenstates; H then S undoes it.
+        """
+        basis = basis.upper()
+        if basis == 'Z':
+            return
+        if basis == 'X':
+            gates = [H]
+        elif basis == 'Y':
+            gates = [H, S] if undo else [Sdg, H]
+        else:
+            raise ValueError(f"Unknown measurement basis: {basis}")
+
+        for q in qubits:
+            for gate in gates:
+                self._state = self._state.apply_gate(gate, [q])
+
     def _apply_measurement(self, m_op) -> int:
         """Apply measurement and return outcome."""
-        # Measure qubits
-        if isinstance(self._state, StateVector):
-            result = self._state.measure(m_op.qubits)
-            self._state = result.post_state
-            outcome = result.outcome
-        else:
-            result = self._state.measure(m_op.qubits)
-            self._state = result.post_state
-            outcome = result.outcome
+        # Rotate to the Z basis, measure, then rotate the collapsed state back
+        # so the post-measurement state is the eigenstate in the requested basis.
+        self._rotate_basis(m_op.qubits, m_op.basis)
+
+        result = self._state.measure(m_op.qubits)
+        self._state = result.post_state
+        outcome = result.outcome
+
+        self._rotate_basis(m_op.qubits, m_op.basis, undo=True)
 
         # Apply readout error if noise model present
         if self._noise_model:
@@ -399,6 +419,10 @@ class Executor:
                 else:
                     break
             self._state = state
+            # Rotate measured qubits into the Z frame of their requested basis
+            # so the sampled distribution reflects X/Y basis measurements.
+            for op in terminal_measures:
+                self._rotate_basis(op.operation.qubits, op.operation.basis)
             counts = self._sample_terminal(terminal_measures, shots)
             end_time = time.time()
             return ExecutionResult(
